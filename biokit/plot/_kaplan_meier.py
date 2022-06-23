@@ -68,9 +68,9 @@ def kaplan_meier(grouped_df, groupby, time='time', status='status', groups=None,
     # get xticks
     raw_xticks = ax_km.get_xticks()
     xticks = ax_km.get_xticks()
-    for group in groups:
-        kmf = kmf_dict[group]
-        ax_km.text(s=group, x=xticks[-1], y=(1 - kmf.cumulative_density_at_times(xticks[-1])), va='bottom', ha='right')
+    # for group in groups:
+    #     kmf = kmf_dict[group]
+    #     ax_km.text(s=group, x=xticks[-1], y=(1 - kmf.cumulative_density_at_times(xticks[-1])), va='bottom', ha='right')
 
     # 表格在图的右上角显示，三线表格式，以全图长宽为参考，表格长度=0.5，高度= (组数+1) x 0.08
     if cox_analysis:
@@ -129,7 +129,7 @@ def kaplan_meier(grouped_df, groupby, time='time', status='status', groups=None,
     table_length = interval * len(ax_km.get_xticks())
     table_start = -interval / 4
     # table 标签
-    for group, i in zip(groups, range(len(groups))):
+    for group, i in zip(reversed(groups), range(len(groups))):
         ax_table.text(x=-(ax_km.get_xticks()[1] - ax_km.get_xticks()[0]) / 2, y=i + 0.5, s=group,
                       color=color_dict[group],
                       ha='right', va='center')

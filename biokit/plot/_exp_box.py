@@ -5,7 +5,8 @@ from scipy.stats import f_oneway
 from sympy.physics.quantum.identitysearch import scipy
 
 
-def exp_box(data, var, groupby, figsize=(4, 8), order=None, cutoff=None, test='t', no_ns=False, kind='box', ax=None):
+def exp_box(data, var, groupby, order=None, cutoff=None, test='t', no_ns=False, kind='box', ax=None,
+            color_dict=None):
     """
 
     :param data: pandas DataFrame
@@ -22,26 +23,25 @@ def exp_box(data, var, groupby, figsize=(4, 8), order=None, cutoff=None, test='t
         order = sorted(list(set(data[groupby])))
 
     # box and strip (violin and strip)
-    plt.figure(figsize=figsize)
     if kind == 'box':
-        sns.boxplot(x=groupby, y=var, data=data, color='grey', width=0.7, order=order)
+        sns.boxplot(x=groupby, y=var, data=data, width=0.7, order=order, ax=ax)
     elif kind == 'violin':
-        sns.violinplot(x=groupby, y=var, data=data, color='grey', width=0.7, order=order)
+        sns.violinplot(x=groupby, y=var, data=data, width=0.7, order=order, ax=ax)
     elif kind == 'boxen':
-        sns.boxenplot(x=groupby, y=var, data=data, color='grey', width=0.7, order=order)
+        sns.boxenplot(x=groupby, y=var, data=data, width=0.7, order=order, ax=ax)
     else:
         print('Support only box, violin and boxen')
 
-    sns.stripplot(x=groupby, y=var, data=data, color='black', size=1, jitter=0.4, order=order)
+    sns.stripplot(x=groupby, y=var, data=data, color='black', size=1, jitter=0.4, order=order, ax=ax)
     # mean line
     for i in range(len(order)):
         group = order[i]
         mean = data[data[groupby] == group][var].mean()
-        plt.plot([i + 0.3, i - 0.3], [mean, mean], c='red', label='mean value', linewidth=3)
-    plt.xlim(-0.5, len(order) - 0.5)
+        ax.plot([i + 0.3, i - 0.3], [mean, mean], c='red', label='mean value', linewidth=3)
+    ax.set_xlim(-0.5, len(order) - 0.5)
     # plt.xticks(rotation=30)
-    plt.title(var, fontsize=30)
-    plt.ylabel('')
+    ax.set_title(var, fontsize=30)
+    ax.set_ylabel('')
     test_df = pd.DataFrame(columns=['pval', 'stat'])
     # define Statistical function
     if test == 't':
@@ -90,17 +90,17 @@ def exp_box(data, var, groupby, figsize=(4, 8), order=None, cutoff=None, test='t
         if text == 'ns' and no_ns == True:
             pass
         else:
-            plt.plot([obs_i, obs_j], [height * max, height * max], c='black')
-            plt.plot([obs_i, obs_i], [(height - 0.02) * max, height * max], c='black')
-            plt.plot([obs_j, obs_j], [(height - 0.02) * max, height * max], c='black')
-            plt.text(x=(i + j) / 2, y=(height + 0.01) * max, s=text, horizontalalignment='center',
-                     fontweight='bold',
-                     fontsize=16)
+            ax.plot([obs_i, obs_j], [height * max, height * max], c='black')
+            ax.plot([obs_i, obs_i], [(height - 0.02) * max, height * max], c='black')
+            ax.plot([obs_j, obs_j], [(height - 0.02) * max, height * max], c='black')
+            ax.text(x=(i + j) / 2, y=(height + 0.01) * max, s=text, horizontalalignment='center',
+                    fontweight='bold',
+                    fontsize=16)
             height += 0.1
         if no_ns == True:
-            plt.ylim(0, data[var].max() * (
+            ax.set_ylim(0, data[var].max() * (
                     1.2 + 0.1 * len(order) * (len(order) - 1) / 2 - 0.1 * pd.value_counts(text).get('ns', 0)))
         else:
-            plt.ylim(0, data[var].max() * (1.2 + 0.1 * len(order) * (len(order) - 1) / 2))
+            ax.set_ylim(0, data[var].max() * (1.2 + 0.1 * len(order) * (len(order) - 1) / 2))
     plt.tight_layout()
     return plt.gcf()

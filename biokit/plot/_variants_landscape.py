@@ -351,6 +351,7 @@ def oncoplot(mutations, sample_info, figsize=None, color_dict=None, discrete_col
     # 画图前准备
     if not figsize:
         figsize = (mutations.shape[1] + 3, len(discrete_columns) + len(continuous_columns) * 2 + len(yticklabels) + 3)
+        figsize = (figsize[0] / 4, figsize[1] / 4)
     fig = plt.figure(figsize=figsize)
     grid_rows = len(discrete_columns) + len(continuous_columns) * 2 + len(yticklabels) + 3 + 1
     grid_cols = mutations.shape[1] + 3
@@ -363,14 +364,21 @@ def oncoplot(mutations, sample_info, figsize=None, color_dict=None, discrete_col
         bottom_of_info = len(discrete_columns) * 2 + len(continuous_columns) * 3
         ax_dict['heatmap'] = plt.subplot(grid[bottom_of_info + 3:, :mutations.shape[1]])
         if fraction_annot:
-            ax_dict['mut_stat_sample'] = plt.subplot(grid[bottom_of_info:bottom_of_info + 2, :mutations.shape[1]])
+            ax_dict['mut_stat_sample'] = plt.subplot(grid[bottom_of_info:bottom_of_info + 3, :mutations.shape[1]])
             ax_dict['mut_stat_gene'] = plt.subplot(grid[bottom_of_info + 3:, mutations.shape[1] + 1:])
+        else:
+            ax_dict['mut_stat_sample'] = plt.subplot(grid[bottom_of_info:bottom_of_info + 2, :mutations.shape[1]])
+            ax_dict['mut_stat_gene'] = plt.subplot(grid[bottom_of_info + 3:, mutations.shape[1]:])
+
     elif info_loc == 'bottom':
         top_of_info = len(yticklabels) + 2
         ax_dict['heatmap'] = plt.subplot(grid[3:top_of_info - 1, :mutations.shape[1]])
         if fraction_annot:
             ax_dict['mut_stat_sample'] = plt.subplot(grid[:2, :mutations.shape[1]])
             ax_dict['mut_stat_gene'] = plt.subplot(grid[3:top_of_info - 1, mutations.shape[1] + 1:])
+        else:
+            ax_dict['mut_stat_sample'] = plt.subplot(grid[:3, :mutations.shape[1]])
+            ax_dict['mut_stat_gene'] = plt.subplot(grid[3:top_of_info - 1, mutations.shape[1]:])
     else:
         raise ValueError('info_loc allowed "upper" or "bottom"')
 
@@ -380,7 +388,7 @@ def oncoplot(mutations, sample_info, figsize=None, color_dict=None, discrete_col
         ax_dict['discrete'].append(ax)
         top += 2
     for i in range(len(continuous_columns)):
-        ax = plt.subplot(grid[top:top + 4, :mutations.shape[1]])
+        ax = plt.subplot(grid[top:top + 2, :mutations.shape[1]])
         ax_dict['continuous'].append(ax)
         top += 3
 
@@ -535,4 +543,4 @@ def oncoplot(mutations, sample_info, figsize=None, color_dict=None, discrete_col
                                    fontsize=15, title_fontsize=15)
         ax_heatmap.add_artist(legend)
         top_of_legend += (len(labels) + 2)
-    return fig
+    return fig, discrete_columns, continuous_columns, figsize, ax_dict

@@ -80,7 +80,7 @@ def kaplan_meier(grouped_df, groupby, time='time', status='status', groups=None,
         for group in groups:
             hr, hr_l, hr_h, cox_p = cox_df.loc[groupby].loc[group]
             cox_table.append(
-                [group, kmf_dict[group].median_survival_time_, f'{hr:0.1f}({hr_l:0.1f}~{hr_h:0.1f})', f'{cox_p:0.1e}'])
+                [group, f'{kmf_dict[group].median_survival_time_:0.1f}', f'{hr:0.1f}({hr_l:0.1f}~{hr_h:0.1f})', f'{cox_p:0.1e}'])
         length = 0.5
         height = (len(groups) + 1) * 0.08
         left = 0.45
@@ -118,9 +118,8 @@ def kaplan_meier(grouped_df, groupby, time='time', status='status', groups=None,
     time_number_table = []
     for group in groups:
         number_at_risk = [grouped_df[(grouped_df[groupby] == group) & (grouped_df[time] >= time_stamp)][status].shape[0]
-                          for time_stamp in xticks[1:]]
+                          for time_stamp in raw_xticks[1:]]
         time_number_table.append(number_at_risk)
-        kmf = kmf_dict[group]
 
     # table number of risk, 在km曲线下方显示
     ax_table = ax_dict['table']

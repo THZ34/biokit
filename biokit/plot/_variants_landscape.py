@@ -423,9 +423,9 @@ def oncoplot(mutations, sample_info, figsize=None, color_dict=None, discrete_col
     sample_info.index = range(sample_info.shape[0])
 
     # 画图 - 临床信息
+    ax_info = {**ax_dict['upper'], **ax_dict['bottom']}
     for column in info_loc['upper'] + info_loc['bottom']:
-        print(ax_dict)
-        ax = ax_dict['upper'].get(column, ax_dict['bottom'][column])
+        ax = ax_info[column]
         if column in discrete_columns:
             for subtype in discrete_colors[column]:
                 tmp_df = sample_info[sample_info[column] == subtype]
@@ -521,7 +521,7 @@ def oncoplot(mutations, sample_info, figsize=None, color_dict=None, discrete_col
     # 调整突变比例的坐标系
     ax_dict['mut_stat_gene'].set_ylim(ax_dict['heatmap'].get_ylim())  # 基因突变统计的纵坐标与热图保持一致
     for ax in sum(
-            [[ax_dict['mut_stat_sample']], list(ax_dict['discrete'].values()), list(ax_dict['continuous'].values())],
+            [[ax_dict['mut_stat_sample']], list(ax_dict['upper'].values()), list(ax_dict['upper'].values())],
             []):
         ax.set_xlim(-0.5, sample_info.shape[0])
 
@@ -542,6 +542,7 @@ def oncoplot(mutations, sample_info, figsize=None, color_dict=None, discrete_col
     titles = ['Variants Type']
     titles.extend([col for col in info_loc['upper'] + info_loc['bottom'] if col in discrete_columns])
 
+    ax_heatmap = ax_dict['heatmap']
     for title in titles:
         ax = axes_require_legend[title]
         handles, labels = ax.get_legend_handles_labels()

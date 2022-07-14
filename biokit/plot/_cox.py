@@ -33,7 +33,7 @@ def forest_plot(cox_result, ax=None):
         groups_cox_table = []
         group_ref_cox_table = []
         for group in groups:
-            n_samples = cox_result.cox_input[cox_result.cox_input[groupby] == group].shape[0]
+            n_samples = cox_result.df[cox_result.df[groupby] == group].shape[0]
             hr, hr_l, hr_h = cox_result[['HR', 'HR(95CI-Low)', 'HR(95CI-High)']].loc[groupby].loc[group]
             if (groupby, group) in cox_result.multi_ref_variables:
                 group_ref_cox_table.append([groupby, f'{group}\n(n={n_samples})', 'reference'])

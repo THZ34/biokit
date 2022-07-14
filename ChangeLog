@@ -1,5 +1,6 @@
 CHANGES
 =======
 
+* analysis.cox分析增加了ref\_dict参数用来指定每个变量的reference plot.forest移除df参数 analysis.cox返回的cox\_result中新增cox\_input属性，对应forest中的被移除的df参数
 * Changes
 * Changes

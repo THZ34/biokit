@@ -24,10 +24,7 @@ def cox(df, time='time', status='status', mod='single', drop_by_vif=True,
     if df.isna().sum().sum() > 0:
         raise ValueError('数据中包含缺省值')
 
-    # 拆分离散变量
     sur_df = df[[time, status]]
-    # sur_df.columns = [[time, status], [time, status]]
-
     raw_variables = df.columns.drop(time).drop(status)
     continuous_index = df.dtypes[(df.dtypes == int) | (df.dtypes == 'int64') | (df.dtypes == float)].index.intersection(
         raw_variables)
@@ -35,6 +32,7 @@ def cox(df, time='time', status='status', mod='single', drop_by_vif=True,
     continuous_df = df[continuous_index]
     continuous_df.columns = [continuous_index, continuous_index]
 
+    # 拆分离散变量
     discrete_df = pd.DataFrame()
     if not ref_dict:
         ref_dict = {}
@@ -57,6 +55,7 @@ def cox(df, time='time', status='status', mod='single', drop_by_vif=True,
     # 找出重复列
     dup_cols = cox_input.T[cox_input.T.duplicated()].index
     dup_col_pair = dict([(i, cox_input.corr()[cox_input.corr()[i] == 1].drop(i).index[0]) for i in dup_cols])
+    dup_refs = dup_cols.intersection(multi_ref_variables)
 
     # cox分析
     cph = CoxPHFitter()
@@ -71,7 +70,7 @@ def cox(df, time='time', status='status', mod='single', drop_by_vif=True,
         cox_result.index = variables
 
     elif mod == 'multiple':
-        # 去掉重复列和离散变量的第一个值
+        # 去掉重复列和离散变量的参考值
         for dup_col in dup_cols:
             if dup_col in multi_ref_variables:
                 multi_ref_variables.remove(dup_col)
@@ -102,6 +101,9 @@ def cox(df, time='time', status='status', mod='single', drop_by_vif=True,
                 for col in copy(dup_cols):
                     if dup_col_pair[col][0] in vif_drop_discrete:
                         dup_cols = dup_cols.drop(col)
+                for col in copy(dup_refs):
+                    if col[0] in vif_drop_discrete:
+                        dup_refs.remove(col)
                 # 如果是离散变量，删除同一变量的其他子类
                 for col in copy(multi_ref_variables):
                     if col[0] in vif_drop_discrete:
@@ -114,6 +116,7 @@ def cox(df, time='time', status='status', mod='single', drop_by_vif=True,
 
     else:
         raise ValueError('mod parameter support "single" and "multiple"')
+
     # 填充参考值和重复值
     ref_df = pd.DataFrame([[1, 1, 1, 1]] * len(multi_ref_variables), index=multi_ref_variables,
                           columns=['exp(coef)', 'exp(coef) lower 95%', 'exp(coef) upper 95%', 'p'])
@@ -121,6 +124,7 @@ def cox(df, time='time', status='status', mod='single', drop_by_vif=True,
     if mod == 'multiple':
         dup_df = cox_result.loc[[dup_col_pair[dup_col] for dup_col in dup_cols]]
         dup_df.index = dup_cols
+        multi_ref_variables.extend(dup_refs)
     else:
         dup_df = pd.DataFrame()
     cox_result = pd.concat([cox_result, dup_df], axis=0)
@@ -130,6 +134,6 @@ def cox(df, time='time', status='status', mod='single', drop_by_vif=True,
     cox_result.columns = ['HR', 'HR(95CI-Low)', 'HR(95CI-High)', 'p-value']
     cox_result.time_col = time
     cox_result.status_col = status
+    cox_result.df = df
     cox_result.multi_ref_variables = multi_ref_variables
-    cox_result.cox_input = cox_input
     return cox_result

@@ -314,9 +314,15 @@ def variants_landscape_compare(mut_df1: [pd.DataFrame, str], mut_df2: [pd.DataFr
 
 # %% oncoplot
 def oncoplot(mutations, sample_info, figsize=None, color_dict=None, discrete_colors=None, variants=None,
-             fraction_lim=None, info_loc='upper', fraction_annot=False, legend_cc=1):
+             fraction_lim=None, info_loc=None, fraction_annot=False, legend_cc=1):
     """oncoplot 瀑布图
 
+
+    :param info_loc: 临床信息位置
+    :param variants:
+    :param fraction_lim:
+    :param legend_cc:
+    :param fraction_annot:
     :param discrete_colors:
     :param mutations: 突变矩阵，使用biokit.preprocessing.read_aachange()读取
     :param sample_info:样本临床信息
@@ -348,49 +354,55 @@ def oncoplot(mutations, sample_info, figsize=None, color_dict=None, discrete_col
     continuous_columns = sample_info.dtypes[~(sample_info.dtypes == 'object')].index
     discrete_columns = sample_info.dtypes[sample_info.dtypes == 'object'].index
 
+    # 临床信息的位置
+    if not info_loc:
+        info_loc = {'upper': [], 'bottom': []}
+
+    # 如果列名不在info_loc中，则加入info_loc['upper']
+    for col in sample_info.columns:
+        if col not in info_loc['upper'] and col not in info_loc['bottom']:
+            info_loc['upper'].append(col)
+
     # 画图前准备
     if not figsize:
         figsize = (mutations.shape[1] + 3, len(discrete_columns) + len(continuous_columns) * 2 + len(yticklabels) + 3)
         figsize = (figsize[0] / 4, figsize[1] / 4)
     fig = plt.figure(figsize=figsize)
-    grid_rows = len(discrete_columns) + len(continuous_columns) * 2 + len(yticklabels) + 3 + 1
+    grid_rows = len(discrete_columns) * 2 + len(continuous_columns) * 3 + len(yticklabels) + 3 + 1
     grid_cols = mutations.shape[1] + 3
     grid = plt.GridSpec(grid_rows, grid_cols)
 
     # 确定各个子图部分的位置，保存到字典
-    ax_dict = {'discrete': [], 'continuous': []}
-    if info_loc == 'upper':
-        top_of_info = 0
-        bottom_of_info = len(discrete_columns) * 2 + len(continuous_columns) * 3
-        ax_dict['heatmap'] = plt.subplot(grid[bottom_of_info + 3:, :mutations.shape[1]])
-        if fraction_annot:
-            ax_dict['mut_stat_sample'] = plt.subplot(grid[bottom_of_info:bottom_of_info + 3, :mutations.shape[1]])
-            ax_dict['mut_stat_gene'] = plt.subplot(grid[bottom_of_info + 3:, mutations.shape[1] + 1:])
-        else:
-            ax_dict['mut_stat_sample'] = plt.subplot(grid[bottom_of_info:bottom_of_info + 2, :mutations.shape[1]])
-            ax_dict['mut_stat_gene'] = plt.subplot(grid[bottom_of_info + 3:, mutations.shape[1]:])
+    top_of_ax = 0
+    ax_dict = {'upper': {}, 'bottom': {}}
+    # 热图上方的临床信息
+    for col in info_loc['upper']:
+        if col in discrete_columns:
+            ax = plt.subplot(grid[top_of_ax, :mutations.shape[1]])
+            top_of_ax += 2
+        elif col in continuous_columns:
+            ax = plt.subplot(grid[top_of_ax:top_of_ax + 2, :mutations.shape[1]])
+            top_of_ax += 3
+        ax_dict['upper'][col] = ax
 
-    elif info_loc == 'bottom':
-        top_of_info = len(yticklabels) + 2
-        ax_dict['heatmap'] = plt.subplot(grid[3:top_of_info - 1, :mutations.shape[1]])
-        if fraction_annot:
-            ax_dict['mut_stat_sample'] = plt.subplot(grid[:2, :mutations.shape[1]])
-            ax_dict['mut_stat_gene'] = plt.subplot(grid[3:top_of_info - 1, mutations.shape[1] + 1:])
-        else:
-            ax_dict['mut_stat_sample'] = plt.subplot(grid[:3, :mutations.shape[1]])
-            ax_dict['mut_stat_gene'] = plt.subplot(grid[3:top_of_info - 1, mutations.shape[1]:])
+    # 热图及突变比例
+    ax_dict['heatmap'] = plt.subplot(grid[top_of_ax + 3:, :mutations.shape[1]])
+    if fraction_annot:
+        ax_dict['mut_stat_sample'] = plt.subplot(grid[top_of_ax:top_of_ax + 2, :mutations.shape[1]])
+        ax_dict['mut_stat_gene'] = plt.subplot(grid[top_of_ax + 3:, mutations.shape[1] + 1:])
     else:
-        raise ValueError('info_loc allowed "upper" or "bottom"')
+        ax_dict['mut_stat_sample'] = plt.subplot(grid[top_of_ax:top_of_ax + 3, :mutations.shape[1]])
+        ax_dict['mut_stat_gene'] = plt.subplot(grid[top_of_ax + 3:, mutations.shape[1]:])
 
-    top = top_of_info
-    for i in range(len(discrete_columns)):
-        ax = plt.subplot(grid[top, :mutations.shape[1]])
-        ax_dict['discrete'].append(ax)
-        top += 2
-    for i in range(len(continuous_columns)):
-        ax = plt.subplot(grid[top:top + 2, :mutations.shape[1]])
-        ax_dict['continuous'].append(ax)
-        top += 3
+    # 热图下方的临床信息
+    for col in info_loc['bottom']:
+        if col in discrete_columns:
+            ax = plt.subplot(grid[top_of_ax, :mutations.shape[1]])
+            top_of_ax += 2
+        elif col in continuous_columns:
+            ax = plt.subplot(grid[top_of_ax:top_of_ax + 2, :mutations.shape[1]])
+            top_of_ax += 3
+        ax_dict['bottom'][col] = ax
 
     # 突变颜色， multi_hits标记为黑色
     if not color_dict:
@@ -410,29 +422,27 @@ def oncoplot(mutations, sample_info, figsize=None, color_dict=None, discrete_col
         discrete_colors.setdefault(column, dict(zip(values, sns.hls_palette(len(values)))))
     sample_info.index = range(sample_info.shape[0])
 
-    # 画图 - 离散变量
-    for column, ax in zip(discrete_columns, ax_dict['discrete']):
-        for subtype in discrete_colors[column]:
-            tmp_df = sample_info[sample_info[column] == subtype]
-            ax.bar(x=tmp_df.index, height=[1] * tmp_df.shape[0], color=discrete_colors[column][subtype], width=1,
-                   label=subtype)
-            ax.spines['right'].set_visible(False)
-            ax.spines['top'].set_visible(False)
-            ax.spines['bottom'].set_visible(False)
+    # 画图 - 临床信息
+    for column in info_loc['upper'] + info_loc['bottom']:
+        print(ax_dict)
+        ax = ax_dict['upper'].get(column, ax_dict['bottom'][column])
+        if column in discrete_columns:
+            for subtype in discrete_colors[column]:
+                tmp_df = sample_info[sample_info[column] == subtype]
+                ax.bar(x=tmp_df.index, height=[1] * tmp_df.shape[0], color=discrete_colors[column][subtype], width=1,
+                       label=subtype)
             ax.spines['left'].set_visible(False)
-            ax.set_xticks([])
             ax.set_yticks([])
             ax.set_ylabel(column, rotation=0, ha='right', va='center', fontsize=10)
-            ax.set_xlim(-0.6, sample_info.shape[0] - 0.4)
 
-    # 画图 - 连续变量
-    for column, ax in zip(continuous_columns, ax_dict['continuous']):
-        ax.bar(x=sample_info.index, height=sample_info[column], color=continuous_colors[column])
+        if column in continuous_columns:
+            ax.bar(x=sample_info.index, height=sample_info[column], color=continuous_colors[column])
+            ax.set_ylabel(column, rotation=0, ha='right', fontsize=10)
+
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
         ax.spines['bottom'].set_visible(False)
         ax.set_xticks([])
-        ax.set_ylabel(column, rotation=0, ha='right', fontsize=10)
         ax.set_xlim(-0.6, sample_info.shape[0] - 0.4)
 
     # 突变统计
@@ -509,33 +519,31 @@ def oncoplot(mutations, sample_info, figsize=None, color_dict=None, discrete_col
     ax.set_xticklabels(ax.get_xticklabels(), rotation=90)
 
     # 调整突变比例的坐标系
-    ax_dict['mut_stat_gene'].set_ylim(ax.get_ylim())
-    for other_ax in sum([[ax_dict['mut_stat_sample']], ax_dict['discrete'], ax_dict['continuous']], []):
-        other_ax.set_xlim(-0.5, sample_info.shape[0])
+    ax_dict['mut_stat_gene'].set_ylim(ax_dict['heatmap'].get_ylim())  # 基因突变统计的纵坐标与热图保持一致
+    for ax in sum(
+            [[ax_dict['mut_stat_sample']], list(ax_dict['discrete'].values()), list(ax_dict['continuous'].values())],
+            []):
+        ax.set_xlim(-0.5, sample_info.shape[0])
 
     # 转移xtickslabel
-    if info_loc == 'bottom':
+    if len(info_loc['bottom']) > 0:
         ax_heatmap = ax_dict['heatmap']
-        if len(ax_dict['continuous']) > 0:
-            ax = ax_dict['continuous'][-1]
-            ax.set_xticks(ax_heatmap.get_xticks())
-            ax.set_xticklabels(ax_heatmap.get_xticklabels(), rotation=90)
-            ax_heatmap.set_xticks([])
-            ax_heatmap.set_xticklabels([])
-        elif len(ax_dict['discrete']) > 0:
-            ax = ax_dict['discrete'][-1]
-            ax.set_xticks(ax_heatmap.get_xticks())
-            ax.set_xticklabels(ax_heatmap.get_xticklabels(), rotation=90)
-            ax_heatmap.set_xticks([])
-            ax_heatmap.set_xticklabels([])
-        else:
-            pass
+        ax = ax_dict['bottom'][-1]
+        ax.set_xticks(ax_heatmap.get_xticks())
+        ax.set_xticklabels(ax_heatmap.get_xticklabels(), rotation=90)
+        ax_heatmap.set_xticks([])
+        ax_heatmap.set_xticklabels([])
+
     # 设置图例
     top_of_legend = 0
-    ax_heatmap = ax_dict['heatmap']
+    axes_require_legend = {'Variants Type': ax_dict['heatmap']}
+    axes_require_legend.update(ax_dict['upper'])
+    axes_require_legend.update(ax_dict['bottom'])
     titles = ['Variants Type']
-    titles.extend(discrete_columns)
-    for ax, title in zip(sum([[ax_heatmap], ax_dict['discrete']], []), titles):
+    titles.extend([col for col in info_loc['upper'] + info_loc['bottom'] if col in discrete_columns])
+
+    for title in titles:
+        ax = axes_require_legend[title]
         handles, labels = ax.get_legend_handles_labels()
         legend = ax_heatmap.legend(handles=handles, labels=labels, title=title, bbox_to_anchor=(
             (mutations.shape[1] + 3) / mutations.shape[1], 1 - (top_of_legend * legend_cc / 50)), ncol=1,
@@ -543,4 +551,5 @@ def oncoplot(mutations, sample_info, figsize=None, color_dict=None, discrete_col
                                    fontsize=15, title_fontsize=15)
         ax_heatmap.add_artist(legend)
         top_of_legend += (len(labels) + 2)
+
     return fig, discrete_columns, continuous_columns, figsize, ax_dict

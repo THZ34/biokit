@@ -13,8 +13,9 @@ from biokit.analysis import cox
 # %%
 
 def kaplan_meier(grouped_df, groupby, time='time', status='status', groups=None, cox_analysis=True, figsize=None,
-                 color_dict=None):
+                 color_dict=None, cox_table_loc=(0.45, 1)):
     """绘制km曲线
+    :param cox_table_loc: cox表格 左上角的坐标
     :param figsize:
     :param color_dict:
     :param cox_analysis:
@@ -80,11 +81,12 @@ def kaplan_meier(grouped_df, groupby, time='time', status='status', groups=None,
         for group in groups:
             hr, hr_l, hr_h, cox_p = cox_df.loc[groupby].loc[group]
             cox_table.append(
-                [group, f'{kmf_dict[group].median_survival_time_:0.1f}', f'{hr:0.1f}({hr_l:0.1f}~{hr_h:0.1f})', f'{cox_p:0.1e}'])
+                [group, f'{kmf_dict[group].median_survival_time_:0.1f}', f'{hr:0.1f}({hr_l:0.1f}~{hr_h:0.1f})',
+                 f'{cox_p:0.1e}'])
         length = 0.5
         height = (len(groups) + 1) * 0.08
-        left = 0.45
-        bottom = 1 - height
+        left = cox_table_loc[0]
+        bottom = cox_table_loc[1] - height
         cox_table_plot = ax_km.table(cox_table, cellLoc='center', bbox=(left, bottom, length, height), edges='open')
         cox_table_plot.auto_set_font_size(False)
         cox_table_plot.set_fontsize(7)

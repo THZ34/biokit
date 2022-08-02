@@ -4,12 +4,12 @@ from copy import copy
 import numpy as np
 import pandas as pd
 from lifelines import CoxPHFitter
+from lifelines.exceptions import ConvergenceError
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 
 
 # %%
-def cox(df, time='time', status='status', mod='single', drop_by_vif=True,
-        ref_dict=None) -> pd.DataFrame:
+def cox(df, time='time', status='status', mod='single', drop_by_vif=True, ref_dict=None) -> pd.DataFrame:
     """单因素和多因素 Cox-regression
     使用多因素分析时候应对高相关性变量进行筛除，否则会导致函数不收敛
 
@@ -52,20 +52,26 @@ def cox(df, time='time', status='status', mod='single', drop_by_vif=True,
             multi_ref_variables.append((groupby, ref_dict.get(groupby, groups[0])))
 
     cox_input = pd.concat([sur_df, continuous_df, discrete_df], axis=1)
+    corr_df = cox_input.corr()
     # 找出重复列
     dup_cols = cox_input.T[cox_input.T.duplicated()].index
-    dup_col_pair = dict([(i, cox_input.corr()[cox_input.corr()[i] == 1].drop(i).index[0]) for i in dup_cols])
+    dup_col_pair = dict([(i, corr_df[corr_df[i] == 1].drop(i).index[0]) for i in dup_cols])
     dup_refs = dup_cols.intersection(multi_ref_variables)
 
     # cox分析
     cph = CoxPHFitter()
     if mod == 'single':
-        single_cox_result = pd.DataFrame()
         variables = cox_input.columns.drop(multi_ref_variables).drop([time, status])
+        single_cox_result = []
         for var in variables:
-            tmp_df = cox_input[[time, status, var]]
-            cph.fit(tmp_df, duration_col=time, event_col=status)
-            single_cox_result = pd.concat([single_cox_result, cph.summary], axis=0)
+            try:
+                tmp_df = cox_input[[time, status, var]]
+                cph.fit(tmp_df, duration_col=time, event_col=status)
+                single_cox_result.append(cph.summary)
+            except ConvergenceError:
+                single_cox_result.append(pd.DataFrame(index=[var]))
+
+        single_cox_result = pd.concat(single_cox_result, axis=0)
         cox_result = single_cox_result[['exp(coef)', 'exp(coef) lower 95%', 'exp(coef) upper 95%', 'p']]
         cox_result.index = variables
 

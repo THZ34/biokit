@@ -362,7 +362,6 @@ def oncoplot(mutations, sample_info, figsize=None, color_dict=None, discrete_col
     for col in sample_info.columns:
         if col not in info_loc['upper'] and col not in info_loc['bottom']:
             info_loc['upper'].append(col)
-
     # 画图前准备
     if not figsize:
         figsize = (mutations.shape[1] + 3, len(discrete_columns) + len(continuous_columns) * 2 + len(yticklabels) + 3)
@@ -385,14 +384,19 @@ def oncoplot(mutations, sample_info, figsize=None, color_dict=None, discrete_col
             top_of_ax += 3
         ax_dict['upper'][col] = ax
 
-    # 热图及突变比例
-    ax_dict['heatmap'] = plt.subplot(grid[top_of_ax + 3:, :mutations.shape[1]])
+    # 突变比例
     if fraction_annot:
         ax_dict['mut_stat_sample'] = plt.subplot(grid[top_of_ax:top_of_ax + 2, :mutations.shape[1]])
-        ax_dict['mut_stat_gene'] = plt.subplot(grid[top_of_ax + 3:, mutations.shape[1] + 1:])
+        top_of_ax += 3
+        ax_dict['mut_stat_gene'] = plt.subplot(grid[top_of_ax:top_of_ax + mutations.shape[0], mutations.shape[1] + 1:])
     else:
         ax_dict['mut_stat_sample'] = plt.subplot(grid[top_of_ax:top_of_ax + 3, :mutations.shape[1]])
-        ax_dict['mut_stat_gene'] = plt.subplot(grid[top_of_ax + 3:, mutations.shape[1]:])
+        top_of_ax += 3
+        ax_dict['mut_stat_gene'] = plt.subplot(grid[top_of_ax:top_of_ax + mutations.shape[0], mutations.shape[1]:])
+
+    # 热图
+    ax_dict['heatmap'] = plt.subplot(grid[top_of_ax:top_of_ax + mutations.shape[0], :mutations.shape[1]])
+    top_of_ax += mutations.shape[0] + 1
 
     # 热图下方的临床信息
     for col in info_loc['bottom']:
@@ -439,9 +443,8 @@ def oncoplot(mutations, sample_info, figsize=None, color_dict=None, discrete_col
             ax.bar(x=sample_info.index, height=sample_info[column], color=continuous_colors[column])
             ax.set_ylabel(column, rotation=0, ha='right', fontsize=10)
 
-        ax.spines['right'].set_visible(False)
-        ax.spines['top'].set_visible(False)
-        ax.spines['bottom'].set_visible(False)
+        for axis in ['bottom', 'right', 'top']:
+            ax.spines[axis].set_visible(False)
         ax.set_xticks([])
         ax.set_xlim(-0.6, sample_info.shape[0] - 0.4)
 
@@ -449,10 +452,12 @@ def oncoplot(mutations, sample_info, figsize=None, color_dict=None, discrete_col
     patient_mut_stat = pd.concat([pd.value_counts(mutations[i]) for i in range(len(xticklabels))], axis=1)
     patient_mut_stat.fillna(0, inplace=True)
     patient_mut_stat = patient_mut_stat * 100 / mutations.shape[0]
+    patient_mut_stat = patient_mut_stat.loc[variants]
 
     gene_mut_stat = pd.concat([pd.value_counts(mutations.loc[i]) for i in range(len(yticklabels))], axis=1)
     gene_mut_stat.fillna(0, inplace=True)
     gene_mut_stat = gene_mut_stat * 100 / mutations.shape[1]
+    gene_mut_stat = gene_mut_stat.loc[variants]
 
     # 样本突变统计(柱状图)
     ax = ax_dict['mut_stat_sample']
@@ -469,7 +474,7 @@ def oncoplot(mutations, sample_info, figsize=None, color_dict=None, discrete_col
         ax.set_ylim(0, fraction_lim[0])
     if fraction_annot:
         ax.set_xticks(range(patient_mut_stat.shape[1]))
-        ax.set_xticklabels([f'{i:0.0f}%' for i in patient_mut_stat.iloc[1:, :].sum(0)])
+        ax.set_xticklabels([f'{i:0.0f}%' for i in patient_mut_stat.iloc[:-1, :].sum(0)])
     else:
         ax.set_xticks([])
     for axis in ['bottom', 'top', 'right']:
@@ -493,7 +498,7 @@ def oncoplot(mutations, sample_info, figsize=None, color_dict=None, discrete_col
     ax.set_ylim(len(yticklabels) - 1.5, -0.5)
     if fraction_annot:
         ax.set_yticks(range(gene_mut_stat.shape[1]))
-        ax.set_yticklabels([f'{i:0.0f}%' for i in gene_mut_stat.iloc[1:, :].sum(0)])
+        ax.set_yticklabels([f'{i:0.0f}%' for i in gene_mut_stat.iloc[:-1, :].sum(0)])
     else:
         ax.set_yticks([])
 
@@ -514,21 +519,19 @@ def oncoplot(mutations, sample_info, figsize=None, color_dict=None, discrete_col
     ax.set_xticklabels(xticklabels)
     for axis in ['bottom', 'left', 'right', 'top']:
         ax.spines[axis].set_visible(False)
-    ax.set_ylim(len(yticklabels) - 1.5, -0.5)
-    ax.set_xlim(-0.5, sample_info.shape[0])
+    ax.set_ylim(len(yticklabels) - 0.5, -0.5)
+    ax.set_xlim(-0.6, sample_info.shape[0] - 0.4)
     ax.set_xticklabels(ax.get_xticklabels(), rotation=90)
 
     # 调整突变比例的坐标系
     ax_dict['mut_stat_gene'].set_ylim(ax_dict['heatmap'].get_ylim())  # 基因突变统计的纵坐标与热图保持一致
-    for ax in sum(
-            [[ax_dict['mut_stat_sample']], list(ax_dict['upper'].values()), list(ax_dict['upper'].values())],
-            []):
-        ax.set_xlim(-0.5, sample_info.shape[0])
+    for ax in sum([[ax_dict['mut_stat_sample']], list(ax_dict['upper'].values()), list(ax_dict['upper'].values())], []):
+        ax.set_xlim(-0.6, sample_info.shape[0] - 0.4)
 
     # 转移xtickslabel
     if len(info_loc['bottom']) > 0:
         ax_heatmap = ax_dict['heatmap']
-        ax = ax_dict['bottom'][-1]
+        ax = ax_dict['bottom'][info_loc['bottom'][-1]]
         ax.set_xticks(ax_heatmap.get_xticks())
         ax.set_xticklabels(ax_heatmap.get_xticklabels(), rotation=90)
         ax_heatmap.set_xticks([])

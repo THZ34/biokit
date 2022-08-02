@@ -59,7 +59,7 @@ def kaplan_meier(grouped_df, groupby, time='time', status='status', groups=None,
         kmf = KaplanMeierFitter()
         kmf.fit(T, E)
         kmf_dict[group] = copy.copy(kmf)
-        kmf.plot_survival_function(ax=ax_km, ci_show=False, color=color_dict[group])
+        kmf.plot_survival_function(ax=ax_km, ci_show=False, color=color_dict[group], label=group)
         os_median = kmf.median_survival_time_
         upper = os_median + 1.96 * T.std() / math.sqrt(len(T))
         lower = os_median - 1.96 * T.std() / math.sqrt(len(T))
@@ -69,20 +69,18 @@ def kaplan_meier(grouped_df, groupby, time='time', status='status', groups=None,
     # get xticks
     raw_xticks = ax_km.get_xticks()
     xticks = ax_km.get_xticks()
-    # for group in groups:
-    #     kmf = kmf_dict[group]
-    #     ax_km.text(s=group, x=xticks[-1], y=(1 - kmf.cumulative_density_at_times(xticks[-1])), va='bottom', ha='right')
 
     # 表格在图的右上角显示，三线表格式，以全图长宽为参考，表格长度=0.5，高度= (组数+1) x 0.08
     if cox_analysis:
         # 整理表格
-        cox_df = cox(grouped_df[[time, status, groupby]], time=time, status=status, mod='multiple')
+        cox_df = cox(grouped_df[[time, status, groupby]], time=time, status=status, mod='multiple',
+                     ref_dict={groupby: groups[0]})
         cox_table = [['group', f'median {time}', 'cox HR(95CI)', 'cox p-value']]
         for group in groups:
             hr, hr_l, hr_h, cox_p = cox_df.loc[groupby].loc[group]
             cox_table.append(
                 [group, f'{kmf_dict[group].median_survival_time_:0.1f}', f'{hr:0.1f}({hr_l:0.1f}~{hr_h:0.1f})',
-                 f'{cox_p:0.1e}'])
+                 f'{cox_p:0.2e}' if cox_p < 0.0001 else f'{cox_p:0.4f}'])
         length = 0.5
         height = (len(groups) + 1) * 0.08
         left = cox_table_loc[0]
@@ -95,7 +93,7 @@ def kaplan_meier(grouped_df, groupby, time='time', status='status', groups=None,
         ax_length = raw_xticks[-1] - (xticks[0] - xticks[1])
         line_start = ax_length * left + (xticks[0] - xticks[1]) / 4
         line_end = ax_length * 0.95
-        line_heights = [1, 0.92, bottom]
+        line_heights = [bottom + height, bottom + height - 0.08, bottom]
         for line_height in line_heights:
             ax_km.plot([line_start, line_end], [line_height, line_height], color='black', linewidth=1)
 
@@ -113,8 +111,9 @@ def kaplan_meier(grouped_df, groupby, time='time', status='status', groups=None,
     ax_km.get_legend().set_visible(False)
 
     # 标题颜色，低于0.05设置为红色，否则为黑色
-    ax_km.set_title(f'{groupby} p-value:{log_rank.p_value:3.5f}', fontsize=10,
-                    color='red' if log_rank.p_value < 0.05 else 'black', y=1.1)
+    ax_km.set_title(
+        f'{groupby} p-value:{log_rank.p_value:0.2e}' if log_rank.p_value < 0.0001 else f'{groupby} p-value:{log_rank.p_value:0.2f}',
+        fontsize=10, color='red' if log_rank.p_value < 0.05 else 'black', y=1.1)
 
     # 获取 number in risk
     time_number_table = []

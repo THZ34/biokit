@@ -12,12 +12,11 @@ def forest_plot(cox_result, ax=None):
     :param ax:
     :return: ax
     """
-    config = {
-        "font.family": 'Microsoft YaHei',
-        "font.size": 10,
-        "mathtext.fontset": 'stix',
-        "font.serif": ['SimSun'],
-    }
+    if not ax:
+        figsize = (10, (cox_result.shape[0] + 3) / 2)
+        fig, ax = plt.subplots(figsize=figsize)
+
+    config = {"font.size": 10}
     rcParams.update(config)
 
     # 检查无穷大值,找出Inf之外的最大值
@@ -28,24 +27,43 @@ def forest_plot(cox_result, ax=None):
     index_dict = {}
     table = []
     for groupby in index_df[0].unique():
+        # print(groupby)
+        # print(index_df[0])
         groups = index_df.loc[groupby].index.to_list()
-        index_dict[groupby] = groups
         groups_cox_table = []
         group_ref_cox_table = []
-        for group in groups:
-            n_samples = cox_result.df[cox_result.df[groupby] == group].shape[0]
-            hr, hr_l, hr_h = cox_result[['HR', 'HR(95CI-Low)', 'HR(95CI-High)']].loc[groupby].loc[group]
-            if (groupby, group) in cox_result.multi_ref_variables:
-                group_ref_cox_table.append([groupby, f'{group}\n(n={n_samples})', 'reference'])
+        if len(groups) > 1:
+            index_dict[groupby] = groups
+            for group in groups:
+                n_samples = cox_result.df[cox_result.df[groupby] == group].shape[0]
+                hr, hr_l, hr_h = cox_result[['HR', 'HR(95CI-Low)', 'HR(95CI-High)']].loc[groupby].loc[group]
+                if (groupby, group) in cox_result.multi_ref_variables:
+                    group_ref_cox_table.append([groupby, f'{group}\n(n={n_samples})', 'reference'])
+                else:
+                    if hr_h < 1000:
+                        groups_cox_table.append(
+                            ['', f'{group}\n(n={n_samples})', f'{hr:0.2f}\n({hr_l:0.2f} ~ {hr_h:0.2f})'])
+                    else:
+                        groups_cox_table.append(
+                            ['', f'{group}\n(n={n_samples})', f'{hr:0.2f}\n({hr_l:0.2f} ~ {hr_h:0.2e})'])
+                        ax.ticklabel_format(style='sci', axis='y')
+        else:
+            group = groupby
+            n_samples = cox_result.df.shape[0]
+            # print(cox_result)
+            hr, hr_l, hr_h = cox_result[['HR', 'HR(95CI-Low)', 'HR(95CI-High)']].loc[groupby, group]
+            if hr_h < 1000:
+                groups_cox_table.append(
+                    [groupby, f'{group}\n(n={n_samples})', f'{hr:0.2f}\n({hr_l:0.2f} ~ {hr_h:0.2f})'])
             else:
-                groups_cox_table.append(['', f'{group}\n(n={n_samples})', f'{hr:0.2f}\n({hr_l:0.2f} ~ {hr_h:0.2f})'])
+                groups_cox_table.append(
+                    [groupby, f'{group}\n(n={n_samples})', f'{hr:0.2f}\n({hr_l:0.2f} ~ {hr_h:0.2e})'])
+                ax.ticklabel_format(style='sci', axis='y')
+
         table.extend(group_ref_cox_table)
         table.extend(groups_cox_table)
 
     # 画图
-    if not ax:
-        figsize = (10, index_df.shape[0] * 1.1 / 2)
-        fig, ax = plt.subplots(figsize=figsize)
     ax.set_ylim(0, index_df.shape[0])
     ax.set_yticks([])
     ax.set_xlim(-max_except_inf * 1.2, max_except_inf * 1.2)
@@ -76,11 +94,16 @@ def forest_plot(cox_result, ax=None):
         xticklabels = [0, 1]
         xticklabels.extend(list(np.arange(1 + interval, max_except_inf, interval)))
         xticks = [i for i in xticklabels]
+
         ax.set_xticks(xticks)
-        ax.set_xticklabels(map(lambda x: str(int(x)), xticklabels))
+        if ax.get_xlim()[1] < 1000:
+            ax.set_xticklabels([str(int(i)) for i in xticklabels])
+        else:
+            ax.set_xticklabels([f'{i:0.2e}' for i in xticklabels])
+
     else:
         ax.set_xticks([i for i in ax.get_xticks() if 0 <= i < max_except_inf * 1.2])
-        ax.set_xticklabels(ax.get_xticks())
+        ax.set_xticklabels([f'{i:0.2f}' for i in ax.get_xticks()])
 
     # HR + error bar
     cox_table = cox_result.to_numpy().tolist()
@@ -116,7 +139,8 @@ def forest_plot(cox_result, ax=None):
                 ax.plot([hr_h, hr_h], [y + 0.4, y + 0.6], color='black', zorder=2)
         ax.scatter(x=hr, y=y + 0.5, s=50, color=color_dict.get(p, 'black'), zorder=3)
         # p值
-        ax.text(y=y + 0.5, x=text_bottom, s=f'{p:0.5f}', color=color_dict.get(p, 'black'), ha='left', va='center')
+        ax.text(y=y + 0.5, x=text_bottom, s=f'{p:0.4f}' if p > 0.0001 else f'{p:0.2e}',
+                color=color_dict.get(p, 'black'), ha='left', va='center')
         y -= 1
 
     # 在上方各留出两行的空间，在下方各留出一行的空间

@@ -1,4 +1,10 @@
+from sklearn.metrics import roc_curve, roc_auc_score
+import numpy as np
+import matplotlib.pyplot as plt
+
+
 # ROC曲线
+
 def roc_plot(dataframe, status, value, color=None, plot=True, ax=None):
     """分析ROC并画图，返回cutoff,AUC和ROC曲线图
 
@@ -10,18 +16,15 @@ def roc_plot(dataframe, status, value, color=None, plot=True, ax=None):
     :param plot:False不画图；True画图并返回plt.figure对象；输入文本则保存1200dpi图片
     :return:cutoff,auc,fig
     """
-    from sklearn.metrics import roc_curve, roc_auc_score
-    import numpy as np
-    import matplotlib.pyplot as plt
 
     # 检查画板
     if not ax:
         fig, ax = plt.subplots()
-    fpr, tpr, thresholds = roc_curve(dataframe[status], dataframe[value])
+    fpr, tpr, thresholds = roc_curve(dataframe[status].to_list(), dataframe[value].to_list())
     # 计算最佳cutoff
     cutoff = thresholds[np.where((tpr - fpr) == (tpr - fpr).max())]
     # 计算AUC
-    auc = roc_auc_score(dataframe[status], dataframe[value])
+    auc = roc_auc_score(dataframe[status].to_list(), dataframe[value].to_list())
     # 画图
     if plot:
         ax.plot(fpr, tpr, color=color, label=f'AUC={auc:.3f}')

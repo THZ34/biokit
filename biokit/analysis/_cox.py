@@ -28,7 +28,7 @@ def cox(df, time='time', status='status', mod='single', drop_by_vif=True, ref_di
     raw_variables = df.columns.drop(time).drop(status)
     continuous_index = df.dtypes[(df.dtypes == int) | (df.dtypes == 'int64') | (df.dtypes == float)].index.intersection(
         raw_variables)
-    discrete_index = df.dtypes[df.dtypes == object].index.intersection(raw_variables)
+    discrete_index = df.dtypes[(df.dtypes == object) | (df.dtypes == bool)].index.intersection(raw_variables)
     continuous_df = df[continuous_index]
     continuous_df.columns = [continuous_index, continuous_index]
 
@@ -52,6 +52,7 @@ def cox(df, time='time', status='status', mod='single', drop_by_vif=True, ref_di
             multi_ref_variables.append((groupby, ref_dict.get(groupby, groups[0])))
 
     cox_input = pd.concat([sur_df, continuous_df, discrete_df], axis=1)
+    print(cox_input)
     corr_df = cox_input.corr()
     # 找出重复列
     dup_cols = cox_input.T[cox_input.T.duplicated()].index
@@ -116,6 +117,7 @@ def cox(df, time='time', status='status', mod='single', drop_by_vif=True, ref_di
                         multi_ref_variables.remove(col)
 
         # 拟合cox模型
+        print(cox_input)
         cph.fit(cox_input, duration_col=time, event_col=status)
         cox_result = cph.summary
         cox_result = cox_result[['exp(coef)', 'exp(coef) lower 95%', 'exp(coef) upper 95%', 'p']]
@@ -136,6 +138,7 @@ def cox(df, time='time', status='status', mod='single', drop_by_vif=True, ref_di
     cox_result = pd.concat([cox_result, dup_df], axis=0)
 
     cox_result.sort_index(inplace=True)
+    print(cox_result)
     cox_result.index = pd.MultiIndex.from_tuples(cox_result.index)
     cox_result.columns = ['HR', 'HR(95CI-Low)', 'HR(95CI-High)', 'p-value']
     cox_result.time_col = time

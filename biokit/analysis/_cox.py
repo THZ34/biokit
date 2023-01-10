@@ -9,10 +9,12 @@ from statsmodels.stats.outliers_influence import variance_inflation_factor
 
 
 # %%
-def cox(df, time='time', status='status', mod='single', drop_by_vif=True, ref_dict=None) -> pd.DataFrame:
+def cox(df, time='time', status='status', variables=None, mod='single', drop_by_vif=True,
+        ref_dict=None) -> pd.DataFrame:
     """单因素和多因素 Cox-regression
     使用多因素分析时候应对高相关性变量进行筛除，否则会导致函数不收敛
 
+    :param variables:
     :param ref_dict: 离散变量的参考值
     :param drop_by_vif: VIF==np.inf时自动去除以避免cox不收敛
     :param df: pd.DataFrame
@@ -21,18 +23,24 @@ def cox(df, time='time', status='status', mod='single', drop_by_vif=True, ref_di
     :param mod: single or multiple
     :return: pd.DataFrame
     """
+    df = df.copy()
+    # 排除缺省值
     if df.isna().sum().sum() > 0:
         raise ValueError('数据中包含缺省值')
 
     sur_df = df[[time, status]]
-    raw_variables = df.columns.drop(time).drop(status)
+
+    if not variables:
+        raw_variables = df.columns.drop(time).drop(status)
+    else:
+        raw_variables = variables
     continuous_index = df.dtypes[(df.dtypes == int) | (df.dtypes == 'int64') | (df.dtypes == float)].index.intersection(
         raw_variables)
     discrete_index = df.dtypes[(df.dtypes == object) | (df.dtypes == bool)].index.intersection(raw_variables)
     continuous_df = df[continuous_index]
     continuous_df.columns = [continuous_index, continuous_index]
 
-    # 拆分离散变量
+    # 离散变量哑编码
     discrete_df = pd.DataFrame()
     if not ref_dict:
         ref_dict = {}
@@ -52,12 +60,17 @@ def cox(df, time='time', status='status', mod='single', drop_by_vif=True, ref_di
             multi_ref_variables.append((groupby, ref_dict.get(groupby, groups[0])))
 
     cox_input = pd.concat([sur_df, continuous_df, discrete_df], axis=1)
-    print(cox_input)
     corr_df = cox_input.corr()
+
     # 找出重复列
     dup_cols = cox_input.T[cox_input.T.duplicated()].index
     dup_col_pair = dict([(i, corr_df[corr_df[i] == 1].drop(i).index[0]) for i in dup_cols])
     dup_refs = dup_cols.intersection(multi_ref_variables)
+
+    # 过滤0方差特征
+    # variance_zero_vars = df.columns[df.std() == 0]
+    # df.drop(variance_zero_vars, axis=1, inplace=True)
+    # print(f'变量 {variance_zero_vars} 方差为0')
 
     # cox分析
     cph = CoxPHFitter()
@@ -75,6 +88,8 @@ def cox(df, time='time', status='status', mod='single', drop_by_vif=True, ref_di
         single_cox_result = pd.concat(single_cox_result, axis=0)
         cox_result = single_cox_result[['exp(coef)', 'exp(coef) lower 95%', 'exp(coef) upper 95%', 'p']]
         cox_result.index = variables
+
+
 
     elif mod == 'multiple':
         # 去掉重复列和离散变量的参考值
@@ -117,7 +132,6 @@ def cox(df, time='time', status='status', mod='single', drop_by_vif=True, ref_di
                         multi_ref_variables.remove(col)
 
         # 拟合cox模型
-        print(cox_input)
         cph.fit(cox_input, duration_col=time, event_col=status)
         cox_result = cph.summary
         cox_result = cox_result[['exp(coef)', 'exp(coef) lower 95%', 'exp(coef) upper 95%', 'p']]
@@ -138,7 +152,6 @@ def cox(df, time='time', status='status', mod='single', drop_by_vif=True, ref_di
     cox_result = pd.concat([cox_result, dup_df], axis=0)
 
     cox_result.sort_index(inplace=True)
-    print(cox_result)
     cox_result.index = pd.MultiIndex.from_tuples(cox_result.index)
     cox_result.columns = ['HR', 'HR(95CI-Low)', 'HR(95CI-High)', 'p-value']
     cox_result.time_col = time

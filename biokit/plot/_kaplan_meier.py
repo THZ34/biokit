@@ -1,7 +1,7 @@
 import copy
 import math
+import warnings
 
-import pandas as pd
 import seaborn as sns
 from lifelines import KaplanMeierFitter
 from lifelines.statistics import multivariate_logrank_test
@@ -13,8 +13,9 @@ from biokit.analysis import cox
 # %%
 
 def kaplan_meier(grouped_df, groupby, time='time', status='status', groups=None, cox_analysis=True, figsize=None,
-                 color_dict=None, cox_table_loc=(0.45, 1)):
+                 color_dict=None, cox_table_loc=(0.45, 1), dropna=True):
     """绘制km曲线
+    :param dropna: 去掉缺失值
     :param cox_table_loc: cox表格 左上角的坐标
     :param figsize:
     :param color_dict:
@@ -27,6 +28,13 @@ def kaplan_meier(grouped_df, groupby, time='time', status='status', groups=None,
     :param ax: matplotlib.axes
     :return: matrix,fig
     """
+    # 去掉缺失值
+    if dropna:
+        # 如果有缺失值，去除并警告
+        if grouped_df[[time, status, groupby]].isna().sum().sum() > 0:
+            warnings.warn(f'DataFrame contains missing values\n{grouped_df[[time, status, groupby]].isna().sum()}')
+            grouped_df = grouped_df.copy()
+            grouped_df.dropna(subset=[time, status, groupby], axis=0, inplace=True)
 
     if not groups:
         groups = list(set(grouped_df[groupby]))
@@ -141,4 +149,4 @@ def kaplan_meier(grouped_df, groupby, time='time', status='status', groups=None,
     # 返回生存分析矩阵和ax
     # plt.subplots_adjust(top=0.85, bottom=0, left=0.15, right=0.95, hspace=-0.1)
     plt.subplots_adjust(top=0.85, bottom=0, left=0.15, right=0.95, hspace=-0.2)
-    return matrix, fig
+    return matrix, log_rank.p_value, fig

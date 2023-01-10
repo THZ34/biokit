@@ -1,14 +1,16 @@
 import matplotlib.pyplot as plt
-import seaborn as sns
 import pandas as pd
+import seaborn as sns
 from scipy.stats import f_oneway
 from sympy.physics.quantum.identitysearch import scipy
 
 
 def exp_box(data, var, groupby, order=None, cutoff=None, test='t', no_ns=False, kind='box', ax=None,
-            color_dict=None):
+            color_dict=None, meanline=False, cutoff_color=None):
     """
 
+    :param meanline:
+    :param color_dict:
     :param data: pandas DataFrame
     :param var: variation name
     :param groupby: x axis
@@ -19,6 +21,9 @@ def exp_box(data, var, groupby, order=None, cutoff=None, test='t', no_ns=False, 
     """
     if not cutoff:
         cutoff = {0.05: '*', 0.01: '**', 0.001: '***', 0.0001: '****'}
+    if not cutoff_color:
+        cutoff_color = dict(
+            zip(['*', '**', '***', '****', 'ns'], ['orange', 'darkorange', 'orangered', 'red', 'deepskyblue']))
     if not order:
         order = sorted(list(set(data[groupby])))
 
@@ -34,10 +39,12 @@ def exp_box(data, var, groupby, order=None, cutoff=None, test='t', no_ns=False, 
 
     sns.stripplot(x=groupby, y=var, data=data, color='black', size=1, jitter=0.4, order=order, ax=ax)
     # mean line
-    for i in range(len(order)):
-        group = order[i]
-        mean = data[data[groupby] == group][var].mean()
-        ax.plot([i + 0.3, i - 0.3], [mean, mean], c='red', label='mean value', linewidth=3)
+    if meanline:
+        for i in range(len(order)):
+            group = order[i]
+            mean = data[data[groupby] == group][var].mean()
+            ax.plot([i + 0.3, i - 0.3], [mean, mean], c='red', label='mean value', linewidth=3)
+
     ax.set_xlim(-0.5, len(order) - 0.5)
     # plt.xticks(rotation=30)
     ax.set_title(var, fontsize=30)
@@ -94,10 +101,9 @@ def exp_box(data, var, groupby, order=None, cutoff=None, test='t', no_ns=False, 
             ax.plot([obs_i, obs_i], [(height - 0.02) * max, height * max], c='black')
             ax.plot([obs_j, obs_j], [(height - 0.02) * max, height * max], c='black')
             ax.text(x=(i + j) / 2, y=(height + 0.01) * max, s=text, horizontalalignment='center',
-                    fontweight='bold',
-                    fontsize=16)
+                    fontweight='bold', fontsize=16, c=cutoff_color[text])
             height += 0.1
-        if no_ns == True:
+        if no_ns:
             ax.set_ylim(0, data[var].max() * (
                     1.2 + 0.1 * len(order) * (len(order) - 1) / 2 - 0.1 * pd.value_counts(text).get('ns', 0)))
         else:

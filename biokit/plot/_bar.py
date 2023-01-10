@@ -2,8 +2,6 @@
 # Author:Tang Hongzhen
 # Email: tanghongzhen34@gmail.com
 # %% 
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib import rcParams
@@ -29,4 +27,3 @@ def cumulative_bar(df, color_dict=None, ax=None):
     ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
     plt.tight_layout()
     return ax
-

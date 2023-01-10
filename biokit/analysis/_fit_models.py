@@ -1,8 +1,9 @@
 import random
+
 import pandas as pd
+from sklearn import linear_model, svm, neighbors, naive_bayes, tree, ensemble, neural_network
 from sklearn.metrics import f1_score, recall_score, precision_score, accuracy_score, r2_score
 from sklearn.model_selection import RepeatedKFold, train_test_split, KFold
-from sklearn import linear_model, svm, neighbors, naive_bayes, tree, ensemble, neural_network
 
 
 def performance_evaluation(X, y, model):

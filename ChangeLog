@@ -1,6 +1,7 @@
 CHANGES
 =======
 
+* cox识别的离散变量类型中添加了bool(最开始只有object)
 * Changes
 * 修复了一个oncoplot的bug
 * kaplan\_meier增加了cox\_table\_loc参数用来设置左上角表格的位置

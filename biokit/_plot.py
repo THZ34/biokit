@@ -4,26 +4,19 @@
 # 邮箱：tanghongzhen34@gmail.com
 # 这个脚本的主要目的是打包一些常用的函数和画图功能，简化操作
 
-import pandas as pd
-import anndata as ad
 import copy
-import numpy as np
-import scanpy as sc
-import scipy.sparse as ss
-import h5py
-import scipy
+import math
+from math import pi
+
 import matplotlib.pyplot as plt
+import pandas as pd
+import scanpy as sc
+import scipy
 import scipy.stats
 import seaborn as sns
 from lifelines import KaplanMeierFitter
 from lifelines.statistics import multivariate_logrank_test, logrank_test
-from matplotlib.backends.backend_pdf import PdfPages
-from scipy.stats import ttest_ind, f_oneway
-from scipy import stats
-from itertools import combinations
-
-import math
-from math import pi
+from scipy.stats import f_oneway
 
 
 def annular(df, groupby, order=None, colors=None):
@@ -63,7 +56,6 @@ def annular(df, groupby, order=None, colors=None):
     plt.legend(bbox_to_anchor=(0.2, 0.2, 1.1, 0.9))
     plt.tight_layout()
     return ax
-
 
 
 # box/violin plot + t-test
@@ -118,8 +110,6 @@ def basic_analysis_pipeline(adata, name):
     sc.tl.leiden(adata)
     sc.tl.louvain(adata)
     adata.write(name + ' result.h5ad')
-
-
 
 
 def hypergeometric_distribution_subtype(adata, cell_markers, groupby, top=20, p=0.05, other_cells='other cells'):

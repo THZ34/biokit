@@ -1,6 +1,6 @@
-from sklearn.metrics import roc_curve, roc_auc_score
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.metrics import roc_curve, roc_auc_score
 
 
 # ROC曲线
@@ -21,16 +21,19 @@ def roc_plot(dataframe, status, value, color=None, plot=True, ax=None):
     if not ax:
         fig, ax = plt.subplots()
     fpr, tpr, thresholds = roc_curve(dataframe[status].to_list(), dataframe[value].to_list())
+
+    if not color:
+        color = 'skyblue'
+
     # 计算最佳cutoff
     cutoff = thresholds[np.where((tpr - fpr) == (tpr - fpr).max())]
     # 计算AUC
     auc = roc_auc_score(dataframe[status].to_list(), dataframe[value].to_list())
     # 画图
     if plot:
-        ax.plot(fpr, tpr, color=color, label=f'AUC={auc:.3f}')
+        ax.plot(fpr, tpr, color=color, label=f'{value} AUC={auc:.3f}')
         ax.plot([0, 1], [0, 1], color='grey', linestyle='--')
         ax.set_xlabel('False positive rate')
         ax.set_ylabel('True positive rate')
         ax.set_title(f'{value} ~ {status}')
-        ax.legend()
     return {'cutoff': cutoff, 'auc': auc}

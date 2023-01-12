@@ -156,6 +156,14 @@ def cox(df, time='time', status='status', variables=None, mod='single', drop_by_
     cox_result.columns = ['HR', 'HR(95CI-Low)', 'HR(95CI-High)', 'p-value']
     cox_result.time_col = time
     cox_result.status_col = status
-    cox_result.df = df
-    cox_result.multi_ref_variables = multi_ref_variables
+
+    n_samples = []
+    index_df = cox_result.index.to_frame()
+    for groupby in index_df[0].unique():
+        groups = index_df.loc[groupby].index.to_list()
+        if len(groups) > 1:
+            for group in groups:
+                n_samples.append(df[df[groupby] == group].shape[0])
+    cox_result['n_sample'] = n_samples
+    
     return cox_result

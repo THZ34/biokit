@@ -7,7 +7,7 @@ from lifelines.statistics import logrank_test
 
 # %%
 def km_best_cutoff(df, value, time='time', status='status'):
-    """找到p值最低的cutoff
+    """鎵惧埌p鍊兼渶浣庣殑cutoff
 
     :param df:
     :param value:
@@ -15,7 +15,7 @@ def km_best_cutoff(df, value, time='time', status='status'):
     :param status:
     :return:
     """
-    df = df.copy()[value, time, status]
+    df = df.copy()[[value, time, status]]
     pvalues = []
     for cutoff in df[value]:
         df['group'] = df[value] > cutoff
@@ -27,4 +27,4 @@ def km_best_cutoff(df, value, time='time', status='status'):
                               event_observed_B=event_B).p_value
         pvalues.append(pvalue)
     df['pvalue'] = pvalues
-    return df[df['pvalue'] == df['pvalue'].min()][value]
+    return df[df['pvalue'] == df['pvalue'].min()][value][0]

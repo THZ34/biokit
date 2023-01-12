@@ -35,29 +35,27 @@ def forest_plot(cox_result, ax=None):
         if len(groups) > 1:
             index_dict[groupby] = groups
             for group in groups:
-                n_samples = cox_result.df[cox_result.df[groupby] == group].shape[0]
-                hr, hr_l, hr_h = cox_result[['HR', 'HR(95CI-Low)', 'HR(95CI-High)']].loc[groupby].loc[group]
+                hr, hr_l, hr_h, n_sample = cox_result[['HR', 'HR(95CI-Low)', 'HR(95CI-High)', 'n_sample']].loc[groupby].loc[group]
                 if (groupby, group) in cox_result.multi_ref_variables:
-                    group_ref_cox_table.append([groupby, f'{group}\n(n={n_samples})', 'reference'])
+                    group_ref_cox_table.append([groupby, f'{group}\n(n={n_sample})', 'reference'])
                 else:
                     if hr_h < 1000:
                         groups_cox_table.append(
-                            ['', f'{group}\n(n={n_samples})', f'{hr:0.2f}\n({hr_l:0.2f} ~ {hr_h:0.2f})'])
+                            ['', f'{group}\n(n={n_sample})', f'{hr:0.2f}\n({hr_l:0.2f} ~ {hr_h:0.2f})'])
                     else:
                         groups_cox_table.append(
-                            ['', f'{group}\n(n={n_samples})', f'{hr:0.2f}\n({hr_l:0.2f} ~ {hr_h:0.2e})'])
+                            ['', f'{group}\n(n={n_sample})', f'{hr:0.2f}\n({hr_l:0.2f} ~ {hr_h:0.2e})'])
                         ax.ticklabel_format(style='sci', axis='y')
         else:
             group = groupby
-            n_samples = cox_result.df.shape[0]
-            # print(cox_result)
+            n_sample = cox_result.df.shape[0]
             hr, hr_l, hr_h = cox_result[['HR', 'HR(95CI-Low)', 'HR(95CI-High)']].loc[groupby, group]
             if hr_h < 1000:
                 groups_cox_table.append(
-                    [groupby, f'{group}\n(n={n_samples})', f'{hr:0.2f}\n({hr_l:0.2f} ~ {hr_h:0.2f})'])
+                    [groupby, f'{group}\n(n={n_sample})', f'{hr:0.2f}\n({hr_l:0.2f} ~ {hr_h:0.2f})'])
             else:
                 groups_cox_table.append(
-                    [groupby, f'{group}\n(n={n_samples})', f'{hr:0.2f}\n({hr_l:0.2f} ~ {hr_h:0.2e})'])
+                    [groupby, f'{group}\n(n={n_sample})', f'{hr:0.2f}\n({hr_l:0.2f} ~ {hr_h:0.2e})'])
                 ax.ticklabel_format(style='sci', axis='y')
 
         table.extend(group_ref_cox_table)

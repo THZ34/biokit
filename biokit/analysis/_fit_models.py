@@ -1,7 +1,11 @@
 import random
 
 import pandas as pd
+import numpy as np
+from matplotlib import pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
 from sklearn import linear_model, svm, neighbors, naive_bayes, tree, ensemble, neural_network
+from sklearn.feature_selection import RFE
 from sklearn.metrics import f1_score, recall_score, precision_score, accuracy_score, r2_score
 from sklearn.model_selection import RepeatedKFold, train_test_split, KFold
 
@@ -147,3 +151,99 @@ def leave_one_out(model, X, y):
         model.fit(train_X, train_y)
         predict_y.append(model.predict(test_X)[0])
     return predict_y
+
+
+def feature_selection(fold_result, model_names=None, pdf=None):
+    if not model_names:
+        model_names = sorted(list(fold_result.keys()))
+    if not pdf:
+        pdf = PdfPages('feature_selection.pdf')
+    for model_name in model_names:
+        train_scores = []
+        test_scores = []
+        scores_list = []
+        x = []
+        for n_feature in sorted(list(fold_result[model_name].keys())):
+            train_score = np.mean(fold_result[model_name][n_feature]['train'])
+            test_score = np.mean(fold_result[model_name][n_feature]['test'])
+            train_scores.append(train_score)
+            test_scores.append(test_score)
+            scores_list.append(train_score + test_score)
+            x.append(n_feature)
+
+        fig, ax = plt.subplots(figsize=(12, 4))
+        ax.plot(x, train_scores, label='Fitting score', zorder=0)
+        ax.plot(x, test_scores, label='Generalization score', zorder=0)
+        ax.plot(x, scores_list, label='The sum of scores', zorder=0)
+        ax.scatter(x=scores_list.index(max(scores_list)) + 1, y=max(scores_list), s=20, color='red', zorder=2)
+        ax.text(x=scores_list.index(max(scores_list)) + 1, y=max(scores_list), s='number of feature with the max score',
+                ha='left', zorder=2)
+
+        ax.set_ylim(0, 2)
+        ax.set_xlabel('Max depth' if 'Tree' in model_name or 'Forest' else 'number of features')
+        ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
+        ax.set_title(f'{model_name} feature selection')
+
+        plt.subplots_adjust(left=0.05, right=0.8, bottom=0.15, top=0.9)
+        pdf.savefig()
+    pdf.close()
+    plt.close()
+
+
+def feature_ranking(X, y, model_names, models, random_state=0):
+    ranking_dict = {}
+    for model_name in model_names:
+        try:
+            model = models[model_name](random_state=random_state)
+        except TypeError:
+            model = models[model_name]()
+        ranking_dict[model_name] = rfe_features(X, y, model)
+
+    rank_df = pd.DataFrame()
+    for model_name in ranking_dict:
+        rank_df[model_name] = ranking_dict[model_name]['rank']
+
+    rank_df.to_csv('rank_df.csv')
+    rank_df = rank_df.astype(int)
+    # sns.clustermap(rank_df, cmap='viridis_r', method='ward')
+    # plt.savefig('rank_cluster.png', dpi=1200)
+    # plt.close()
+    return rank_df
+
+
+def rfe_features(X, y, model):
+    """为了节约时间和计算资源，我们在应用递归特征消除的时候分3次进行
+    每次消除100个特征至10000特征
+    每次消除20个特征至2000特征
+    每次消除1个特征至1个特征"""
+    # 第一轮
+    n_features_to_select = 10000
+    step = 100
+    rfe = RFE(estimator=model, n_features_to_select=n_features_to_select, step=step)
+    rfe.fit(X, y)
+    ranking_1 = pd.DataFrame([X.columns, rfe.ranking_]).T.sort_values(by=1)
+    ranking_1[1] = ranking_1[1][ranking_1[1] > 1] * step + n_features_to_select
+    X = X.T[rfe.ranking_ == 1].T
+
+    # 第二轮
+    n_features_to_select = 2000
+    step = 20
+    rfe = RFE(estimator=model, n_features_to_select=n_features_to_select, step=step)
+    rfe.fit(X, y)
+    ranking_2 = pd.DataFrame([X.columns, rfe.ranking_]).T.sort_values(by=1)
+    ranking_2[1] = ranking_2[1][ranking_2[1] > 1] * step + n_features_to_select
+    X = X.T[rfe.ranking_ == 1].T
+
+    # 第三轮
+    n_features_to_select = 1
+    step = 1
+    rfe = RFE(estimator=model, n_features_to_select=n_features_to_select, step=step)
+    rfe.fit(X, y)
+    ranking_3 = pd.DataFrame([X.columns, rfe.ranking_]).T.sort_values(by=1)
+
+    ranking_1.index = ranking_1[0]
+    ranking_2.index = ranking_2[0]
+    ranking_3.index = ranking_3[0]
+    ranking = pd.concat([ranking_1, ranking_2, ranking_3]).dropna().sort_values(by=1)
+    ranking.columns = ['gene', 'rank']
+    return ranking

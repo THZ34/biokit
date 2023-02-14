@@ -59,8 +59,9 @@ def oncoplot(mutations, sample_info, figsize=None, color_dict=None, discrete_col
             variants.append(variant)
 
     sample_info = sample_info.loc[xticklabels]
-    continuous_columns = sample_info.dtypes[~(sample_info.dtypes == 'object')].index
-    discrete_columns = sample_info.dtypes[sample_info.dtypes == 'object'].index
+    continuous_columns = sample_info.dtypes[
+        ~((sample_info.dtypes == 'object') | (sample_info.dtypes == 'bool'))].index
+    discrete_columns = sample_info.dtypes[(sample_info.dtypes == 'object') | (sample_info.dtypes == 'bool')].index
 
     # 临床信息的位置
     if not info_loc:

@@ -1,39 +1,59 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from sklearn.metrics import roc_curve, roc_auc_score
+import seaborn as sns
 
 
 # ROC曲线
 
-def roc_plot(dataframe, status, value, color=None, plot=True, ax=None):
+def rocplots(states=None, values=None, colors=None, plot=True, ax=None, linestyles=None, labels=None, annot_aucs=False,
+             annot_loc=(1, 0)):
     """分析ROC并画图，返回cutoff,AUC和ROC曲线图
 
+    :param annot_loc:
+    :param annot_aucs:
+    :param labels:
+    :param linestyles:
     :param ax:
-    :param color:
-    :param dataframe: pandas.DataFrame对象
-    :param status:标记状态的列名，二分类，1代表事件发生
-    :param value:用于预测状态的值的列名
+    :param colors:
+    :param states:标记状态的列名，二分类，1代表事件发生
+    :param values:用于预测状态的值的列名
     :param plot:False不画图；True画图并返回plt.figure对象；输入文本则保存1200dpi图片
     :return:cutoff,auc,fig
     """
 
     # 检查画板
     if not ax:
-        fig, ax = plt.subplots()
-    fpr, tpr, thresholds = roc_curve(dataframe[status].to_list(), dataframe[value].to_list())
+        fig, ax = plt.subplots(figsize=(7.142857, 5.8823))
+        plt.subplots_adjust(0.05, 0.05, 0.75, 0.9)
+        ax.set_xlabel('False Positive Rate')
+        ax.set_ylabel('True Rositive Rate')
+        ax.set_title('ROC(Receiver Operating Characteristic)')
 
-    if not color:
-        color = 'skyblue'
+    if not colors:
+        colors = sns.hls_palette(len(states))
+    if not linestyles:
+        linestyles = ['--'] * len(states)
 
-    # 计算最佳cutoff
+    cutoffs, aucs = [], []
+    for state, value, color, linestyle, label in zip(states, values, colors, linestyles, labels):
+        cutoff, auc = rocplot(value=value, status=state, ax=ax, label=label, color=color, linestyle=linestyle)
+        cutoffs.append(cutoff)
+        aucs.append(auc)
+    ax.legend(bbox_to_anchor=(1, 1))
+    if annot_aucs:
+        max_string_length = max([len(label) for label in labels])
+        auc_table = [f'{"AUC":<{max_string_length}}'] + [
+            f'{label}{" " * ((max_string_length - len(label)) * 2)} : {auc:0.2f}' for label, auc in zip(labels, aucs)]
+        auc_strings = '\n'.join(auc_table)
+        ax.text(x=annot_loc[0], y=annot_loc[1], s=auc_strings, backgroundcolor='lightcyan', ha='right', va='bottom')
+    return cutoffs, aucs
+
+
+def rocplot(value, status, ax, label='', color='deepskyblue', linestyle=(0, (2, 2, 1, 1))):
+    fpr, tpr, thresholds = roc_curve(status, value)
+    ax.plot(fpr, tpr, color=color, label=label, linestyle=linestyle)
     cutoff = thresholds[np.where((tpr - fpr) == (tpr - fpr).max())]
-    # 计算AUC
-    auc = roc_auc_score(dataframe[status].to_list(), dataframe[value].to_list())
-    # 画图
-    if plot:
-        ax.plot(fpr, tpr, color=color, label=f'{value} AUC={auc:.3f}')
-        ax.plot([0, 1], [0, 1], color='grey', linestyle='--')
-        ax.set_xlabel('False positive rate')
-        ax.set_ylabel('True positive rate')
-        ax.set_title(f'{value} ~ {status}')
-    return {'cutoff': cutoff, 'auc': auc}
+    auc = roc_auc_score(status, value)
+    return cutoff, auc

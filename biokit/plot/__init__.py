@@ -9,3 +9,4 @@ from ._kaplan_meier import kaplan_meier
 from ._roc_plot import roc_plot
 from ._variants_landscape import oncoplot
 from ._volcano_plot import volcano_plot
+from ._lasso import lassocv

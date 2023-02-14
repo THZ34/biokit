@@ -8,13 +8,15 @@ from lifelines.statistics import multivariate_logrank_test
 from matplotlib import pyplot as plt
 
 from biokit.analysis import cox
+from matplotlib import rcParams
 
 
 # %%
 
 def kaplan_meier(grouped_df, groupby, time='time', status='status', groups=None, cox_analysis=True, figsize=None,
-                 color_dict=None, cox_table_loc=(0.45, 1), dropna=True):
+                 color_dict=None, cox_table_loc=(0.45, 1), dropna=True, cox_ref=None, show_censors=False):
     """绘制km曲线
+    :param cox_ref:
     :param dropna: 去掉缺失值
     :param cox_table_loc: cox表格 左上角的坐标
     :param figsize:
@@ -25,7 +27,6 @@ def kaplan_meier(grouped_df, groupby, time='time', status='status', groups=None,
     :param time: column name of time, default: 'time'
     :param status: column name of status, default: 'status'
     :param groups: groups and order
-    :param ax: matplotlib.axes
     :return: matrix,fig
     """
     # 去掉缺失值
@@ -67,7 +68,8 @@ def kaplan_meier(grouped_df, groupby, time='time', status='status', groups=None,
         kmf = KaplanMeierFitter()
         kmf.fit(T, E)
         kmf_dict[group] = copy.copy(kmf)
-        kmf.plot_survival_function(ax=ax_km, ci_show=False, color=color_dict[group], label=group)
+        kmf.plot_survival_function(ax=ax_km, ci_show=False, color=color_dict[group], label=group,
+                                   show_censors=show_censors)
         os_median = kmf.median_survival_time_
         upper = os_median + 1.96 * T.std() / math.sqrt(len(T))
         lower = os_median - 1.96 * T.std() / math.sqrt(len(T))
@@ -82,7 +84,7 @@ def kaplan_meier(grouped_df, groupby, time='time', status='status', groups=None,
     if cox_analysis:
         # 整理表格
         cox_df = cox(grouped_df[[time, status, groupby]], time=time, status=status, mod='multiple',
-                     ref_dict={groupby: groups[0]})
+                     ref_dict={groupby: cox_ref or groups[0]})
         cox_table = [['group', f'median {time}', 'cox HR(95CI)', 'cox p-value']]
         for group in groups:
             hr, hr_l, hr_h, cox_p = cox_df.loc[groupby].loc[group]
@@ -121,7 +123,7 @@ def kaplan_meier(grouped_df, groupby, time='time', status='status', groups=None,
     # 标题颜色，低于0.05设置为红色，否则为黑色
     ax_km.set_title(
         f'{groupby} p-value:{log_rank.p_value:0.2e}' if log_rank.p_value < 0.0001 else f'{groupby} p-value:{log_rank.p_value:0.2f}',
-        fontsize=10, color='red' if log_rank.p_value < 0.05 else 'black', y=1.1)
+        fontsize=rcParams['font.size'] + 2, color='red' if log_rank.p_value < 0.05 else 'black', y=1.1)
 
     # 获取 number in risk
     time_number_table = []
@@ -139,12 +141,11 @@ def kaplan_meier(grouped_df, groupby, time='time', status='status', groups=None,
     # table 标签
     for group, i in zip(reversed(groups), range(len(groups))):
         ax_table.text(x=-(ax_km.get_xticks()[1] - ax_km.get_xticks()[0]) / 2, y=i + 0.5, s=group,
-                      color=color_dict[group],
-                      ha='right', va='center')
+                      color=color_dict[group], ha='right', va='center')
 
     ax_table.table(time_number_table, bbox=(table_start, 0, table_length, 1), cellLoc='center', edges='open')
     ax_table.axis('off')
-    ax_table.set_title('Number at Risk', fontsize=10, ha='center')
+    ax_table.set_title('Number at Risk', fontsize=rcParams['font.size'] + 2, ha='center')
     ax_table.set_ylim(0, len(groups))
     # 返回生存分析矩阵和ax
     # plt.subplots_adjust(top=0.85, bottom=0, left=0.15, right=0.95, hspace=-0.1)

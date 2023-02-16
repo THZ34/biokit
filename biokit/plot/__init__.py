@@ -1,5 +1,4 @@
 from ._circos import Circos
-from ._circos import bezier_curve, bezier_area
 from ._cox import forest_plot
 from ._exp_box import exp_box
 from ._fisher_bar import fisher_bar, ttest_box

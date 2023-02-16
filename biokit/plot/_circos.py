@@ -52,12 +52,15 @@ class Circos(object):
             self.rings[current_ring_num + i] = []
 
     def add_layer(self, data, value_col, kind, ring, color_dict=None, height=None, linepoints=None,
-                  size=None, alpha=None, marker=None, rotation=None):
+                  size=None, alpha=None, marker=None, rotation=None, vmax=None, width=None, hue_color=None,
+                  hue_label=None):
         """向环中添加一个图层
 
+        :param hue_label:
+        :param hue_color:
+        :param width:
+        :param vmax:
         :param rotation:
-        :param va:
-        :param ha:
         :param marker:
         :param alpha:
         :param size:
@@ -95,7 +98,7 @@ class Circos(object):
         if kind not in self.kinds:
             raise ValueError(f'kind allowed {self.kinds}')
 
-        layer = {'kind': kind, 'value': value_col, 'alpha': alpha}
+        layer = {'kind': kind, 'value_col': value_col, 'alpha': alpha}
 
         if kind == 'barh':
             layer['data'] = self.coordinating(data)
@@ -104,8 +107,14 @@ class Circos(object):
             layer['color'] = color_dict or dict(zip(values, sns.hls_palette(len(values))))
 
         elif kind == 'bar':
+            if not isinstance(value_col, list):
+                value_col = [value_col]
             layer['data'] = self.coordinating(data)
-            pass
+            layer['value_cols'] = value_col
+            layer['width'] = width or 0.8
+            layer['vmax'] = vmax or data[value_col].max().max() * 1.25
+            layer['hue_color'] = hue_color or sns.hls_palette(len(value_col))
+            layer['hue_label'] = hue_label or value_col
 
         elif kind == 'line':
             layer['data'] = self.coordinating(data)
@@ -144,15 +153,16 @@ class Circos(object):
         ring.append(layer)
         return layer
 
-    def set_base(self, chr_df, interval_proportion=0.1, ):
+    def set_base(self, chr_df, interval_proportion=0.1, keep_space=0.5):
         """设定基础坐标层，其他层的横坐标会基于这一层进行矫正
 
+        :param keep_space:
         :param interval_proportion:
         :param chr_df:
         :return: None
         """
         chr_df['length'] = chr_df['end']
-        ring_length = chr_df['end'].sum() * (1 + interval_proportion) / (2 * pi)
+        ring_length = chr_df['end'].sum() * (1 + interval_proportion) * (1 + keep_space) / (2 * pi)
         chr_interval = chr_df['end'].sum() * interval_proportion / chr_df.shape[0]
         chr_df['chr_ring_start'] = [(chr_df['end'][:i].sum() + chr_interval * i) for i in range(chr_df.shape[0])]
         chr_df['chr_ring_start'] = chr_df['chr_ring_start'] / ring_length
@@ -183,7 +193,7 @@ class Circos(object):
         karyoband_df['length'] = karyoband_df['end'] - karyoband_df['start']
         color_dict = dict(zip(['gneg', 'gpos25', 'gpos50', 'gpos75', 'gpos100', 'acen', 'gvar', 'stalk'],
                               ['white', 'lightgrey', 'grey', 'dimgrey', 'black', 'lightcoral', 'pink', 'red']))
-        band_layer = {'kind': 'barh', 'value': 'type', 'color': color_dict, 'data': karyoband_df.copy()}
+        band_layer = {'kind': 'barh', 'value_col': 'type', 'color': color_dict, 'data': karyoband_df.copy()}
         self.background_ring.append(band_layer)
 
     def init_gene_base_layer(self, genes):
@@ -281,7 +291,7 @@ class Circos(object):
         """
         data = layer['data']
         kind = layer['kind']
-        value = layer['value']
+        value_col = layer['value_col']
         color_dict = layer.get('color', 'deepskyblue')
         height = layer.get('height', 0.8)
         linewidth = layer.get('linewidth', 5)
@@ -290,22 +300,24 @@ class Circos(object):
         alpha = layer.get('alpha', 1)
         scattersize = layer.get('scattersize', 5)
         marker = layer.get('marker', 'O')
-        # ha = layer.get('ha', 'center')
-        # va = layer.get('va', 'center')
         rotation = layer.get('rotation', 0)
 
         if kind == 'barh':
-            self.barhplot(data, value, height, y, color_dict)
+            self.barhplot(data, value_col, height, y, color_dict)
         elif kind == 'bar':
-            pass
+            width = layer.get('width', 0.8)
+            vmax = layer.get('vmax', data[value_col].max().max() * 1.25)
+            hue_color = layer.get('hue_color', sns.hls_palette(len(value_col)))
+            hue_label = layer.get('hue_label', value_col)
+            self.barplot(data, value_col, y, width, vmax, hue_color, hue_label)
         elif kind == 'bezier':
-            self.bezierplot(data, value, y, linewidth, linepoints, color_dict, alpha)
+            self.bezierplot(data, value_col, y, linewidth, linepoints, color_dict, alpha)
         elif kind == 'bezierarea':
-            self.bezierareaplot(data, value, y, linewidth, linepoints, color_dict, alpha)
+            self.bezierareaplot(data, value_col, y, linewidth, linepoints, color_dict, alpha)
         elif kind == 'text':
-            self.textanno(data, value, y, fontsize, rotation)
+            self.textanno(data, value_col, y, fontsize, rotation)
         elif kind == 'scatter':
-            self.scatter(data, value, y, scattersize, marker, color_dict)
+            self.scatter(data, value_col, y, scattersize, marker, color_dict)
 
     def draw(self):
         rings = self.rings
@@ -416,8 +428,36 @@ class Circos(object):
             ax.text(x=x, y=y, s=text, ha='center', va='center', rotation=self.circos_rotation(x),
                     fontsize=fontsize)
 
-    def bar(self, data, value_col, y, width=1, ymax=None):
-        pass
+    def barplot(self, data, value_cols, y, width=0.8, vmax=None, hue_color=None, hue_label=None):
+        print(y)
+        data = data.copy()
+        if not vmax:
+            vmax = data[value_cols].max().max() * 1.25
+
+        if not hue_color:
+            hue_color = sns.hls_palette(n_colors=len(value_cols))
+
+        if not hue_label:
+            hue_label = value_cols
+
+        ax = self.ax
+        bar_table = pd.DataFrame()
+        for gene_number in data.index:
+            start, end = data.loc[gene_number, ['start', 'end']]
+            block_length = end - start
+            bar_width = width * block_length / len(value_cols)
+            bar_x = np.linspace(start, end, len(value_cols) * 2 + 1)[1::2]
+            bar_height = data.loc[gene_number][value_cols] / vmax
+            temp_df = pd.DataFrame([bar_x, [bar_width] * len(value_cols), bar_height, hue_label],
+                                   index=['x', 'width', 'height', 'label']).T
+            bar_table = pd.concat([bar_table, temp_df], axis=0)
+
+        for label, color in zip(hue_label, hue_color):
+            bar_x = bar_table[bar_table['label'] == label]['x']
+            bar_height = bar_table[bar_table['label'] == label]['height']
+            bar_width = bar_table[bar_table['label'] == label]['width']
+            ax.bar(x=bar_x, height=bar_height, width=bar_width, color=color, label=label, bottom=y)
+        self.bar_table = bar_table
 
     @staticmethod
     def bezier_curve(p0, p1, vertices=np.array([0, 0]), n=20):

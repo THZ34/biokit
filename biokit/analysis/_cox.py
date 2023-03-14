@@ -63,7 +63,8 @@ def cox(df, time='time', status='status', variables=None, mod='single', drop_by_
     corr_df = cox_input.corr()
 
     # 找出重复列
-    dup_cols = cox_input.T[cox_input.T.duplicated()].index
+    factor_df = cox_input.drop([time, status], axis=1).copy()
+    dup_cols = factor_df.T[factor_df.T.duplicated()].index
     dup_col_pair = dict([(i, corr_df[corr_df[i] == 1].drop(i).index[0]) for i in dup_cols])
     dup_refs = dup_cols.intersection(multi_ref_variables)
 
@@ -88,8 +89,6 @@ def cox(df, time='time', status='status', variables=None, mod='single', drop_by_
         single_cox_result = pd.concat(single_cox_result, axis=0)
         cox_result = single_cox_result[['exp(coef)', 'exp(coef) lower 95%', 'exp(coef) upper 95%', 'p']]
         cox_result.index = variables
-
-
 
     elif mod == 'multiple':
         # 去掉重复列和离散变量的参考值
@@ -165,5 +164,5 @@ def cox(df, time='time', status='status', variables=None, mod='single', drop_by_
             for group in groups:
                 n_samples.append(df[df[groupby] == group].shape[0])
     cox_result['n_sample'] = n_samples
-    
+
     return cox_result

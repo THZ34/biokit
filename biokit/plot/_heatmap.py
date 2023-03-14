@@ -69,12 +69,13 @@ def heatmap_circledot(mutations, ax, color_dict=None, sep=','):
     for var in color_dict.keys():
         patches = []
         temp_sparse_df = sparse_df[sparse_df['var'] == var]
-        for y, x, t1, t2, var in temp_sparse_df.to_numpy():
-            patch = Wedge(center=(x, y), r=0.4, theta1=t1, theta2=t2, fc=color_dict[var], label='_nolegend_', ec='grey')
-            patches.append(patch)
-            ax.add_patch(patch)
-        wedge_container = Container(patches, label=var)
-        ax.add_container(wedge_container)
+        if temp_sparse_df.shape[0] > 0:
+            for y, x, t1, t2, var in temp_sparse_df.to_numpy():
+                patch = Wedge(center=(x, y), r=0.4, theta1=t1, theta2=t2, fc=color_dict[var], label='_nolegend_', ec='grey')
+                patches.append(patch)
+                ax.add_patch(patch)
+            wedge_container = Container(patches, label=var)
+            ax.add_container(wedge_container)
     return ax
 
 
@@ -102,6 +103,7 @@ def heatmap_cumulativebox(mutations, ax, color_dict, sep=','):
     sparse_df = pd.DataFrame(new_sparse_df, columns=['x', 'bottom', 'height', 'var'])
     for var in color_dict:
         temp_sparse_df = sparse_df[sparse_df['var'] == var]
-        ax.bar(x=temp_sparse_df['x'], bottom=temp_sparse_df['bottom'],
-               height=temp_sparse_df['height'], label=var, color=color_dict[var], ec='grey', align='center')
+        if temp_sparse_df.shape[0] > 0:
+            ax.bar(x=temp_sparse_df['x'], bottom=temp_sparse_df['bottom'],
+                   height=temp_sparse_df['height'], label=var, color=color_dict[var], ec='grey', align='center')
     return ax

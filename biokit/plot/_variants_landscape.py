@@ -3,7 +3,7 @@ import pandas as pd
 import seaborn as sns
 from matplotlib import pyplot as plt
 from scipy.sparse import coo_matrix
-
+from biokit.plot._heatmap import heatmap_cumulativebox,heatmap_circledot
 
 def oncoplot(mutations, sample_info, figsize=None, color_dict=None, discrete_colors=None, fraction_lim=None,
              info_loc=None, fraction_annot=False, legend_cc=1, allow_multi_hits=True, heatmap_kind='box'):
@@ -247,10 +247,8 @@ def oncoplot(mutations, sample_info, figsize=None, color_dict=None, discrete_col
     # 突变热图
     ax = ax_dict['heatmap']
     if heatmap_kind == 'box':
-        from biokit.plot._heatmap import heatmap_cumulativebox
         heatmap_cumulativebox(mutations, ax, color_dict, sep=',')
     elif heatmap_kind == 'circle':
-        from biokit.plot._heatmap import heatmap_circledot
         heatmap_circledot(mutations, ax, color_dict, sep=',')
 
     ax.invert_yaxis()

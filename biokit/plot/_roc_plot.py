@@ -51,9 +51,15 @@ def rocplots(states=None, values=None, colors=None, plot=True, ax=None, linestyl
     return cutoffs, aucs
 
 
-def rocplot(value, status, ax, label='', color='deepskyblue', linestyle=(0, (2, 2, 1, 1))):
+def rocplot(value, status, ax, label='', color='deepskyblue', linestyle=(0, (2, 2, 1, 1)), fill=False, linewidth=10):
     fpr, tpr, thresholds = roc_curve(status, value)
-    ax.plot(fpr, tpr, color=color, label=label, linestyle=linestyle)
+    ax.plot(fpr, tpr, color=color, label=label, linestyle=linestyle,linewidth=linewidth)
+    if fill:
+        fill_x = fpr
+        fill_x = np.append(fill_x, [[1]])
+        fill_y = tpr
+        fill_y = np.append(fill_y, [[0]])
+        ax.fill(fill_x, fill_y, color='deepskyblue')
     cutoff = thresholds[np.where((tpr - fpr) == (tpr - fpr).max())]
     auc = roc_auc_score(status, value)
     return cutoff, auc

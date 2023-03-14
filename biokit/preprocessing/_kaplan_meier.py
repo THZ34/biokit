@@ -27,4 +27,4 @@ def km_best_cutoff(df, value, time='time', status='status'):
                               event_observed_B=event_B).p_value
         pvalues.append(pvalue)
     df['pvalue'] = pvalues
-    return df[df['pvalue'] == df['pvalue'].min()][value][0]
+    return df[df['pvalue'] == df['pvalue'].min()][value].to_numpy()[0]

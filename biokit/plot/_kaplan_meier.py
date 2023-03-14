@@ -5,6 +5,7 @@ import warnings
 import seaborn as sns
 from lifelines import KaplanMeierFitter
 from lifelines.statistics import multivariate_logrank_test
+from lifelines.exceptions import ConvergenceError
 from matplotlib import pyplot as plt
 
 from biokit.analysis import cox
@@ -82,30 +83,34 @@ def kaplan_meier(grouped_df, groupby, time='time', status='status', groups=None,
 
     # 表格在图的右上角显示，三线表格式，以全图长宽为参考，表格长度=0.5，高度= (组数+1) x 0.08
     if cox_analysis:
+        # print(grouped_df)
         # 整理表格
-        cox_df = cox(grouped_df[[time, status, groupby]], time=time, status=status, mod='multiple',
-                     ref_dict={groupby: cox_ref or groups[0]})
-        cox_table = [['group', f'median {time}', 'cox HR(95CI)', 'cox p-value']]
-        for group in groups:
-            hr, hr_l, hr_h, cox_p = cox_df.loc[groupby].loc[group]
-            cox_table.append(
-                [group, f'{kmf_dict[group].median_survival_time_:0.1f}', f'{hr:0.1f}({hr_l:0.1f}~{hr_h:0.1f})',
-                 f'{cox_p:0.2e}' if cox_p < 0.0001 else f'{cox_p:0.4f}'])
-        length = 0.5
-        height = (len(groups) + 1) * 0.08
-        left = cox_table_loc[0]
-        bottom = cox_table_loc[1] - height
-        cox_table_plot = ax_km.table(cox_table, cellLoc='center', bbox=(left, bottom, length, height), edges='open')
-        cox_table_plot.auto_set_font_size(False)
-        cox_table_plot.set_fontsize(7)
+        try:
+            cox_df = cox(grouped_df[[time, status, groupby]], time=time, status=status, mod='multiple',
+                         ref_dict={groupby: cox_ref or groups[0]})
+            cox_table = [['group', f'median {time}', 'cox HR(95CI)', 'cox p-value']]
+            for group in groups:
+                hr, hr_l, hr_h, cox_p = cox_df.loc[groupby].loc[group]
+                cox_table.append(
+                    [group, f'{kmf_dict[group].median_survival_time_:0.1f}', f'{hr:0.1f}({hr_l:0.1f}~{hr_h:0.1f})',
+                     f'{cox_p:0.2e}' if cox_p < 0.0001 else f'{cox_p:0.4f}'])
+            length = 0.5
+            height = (len(groups) + 1) * 0.08
+            left = cox_table_loc[0]
+            bottom = cox_table_loc[1] - height
+            cox_table_plot = ax_km.table(cox_table, cellLoc='center', bbox=(left, bottom, length, height), edges='open')
+            cox_table_plot.auto_set_font_size(False)
+            cox_table_plot.set_fontsize(7)
 
-        # 三线表，线
-        ax_length = raw_xticks[-1] - (xticks[0] - xticks[1])
-        line_start = ax_length * left + (xticks[0] - xticks[1]) / 4
-        line_end = ax_length * 0.95
-        line_heights = [bottom + height, bottom + height - 0.08, bottom]
-        for line_height in line_heights:
-            ax_km.plot([line_start, line_end], [line_height, line_height], color='black', linewidth=1)
+            # 三线表，线
+            ax_length = raw_xticks[-1] - (xticks[0] - xticks[1])
+            line_start = ax_length * left + (xticks[0] - xticks[1]) / 4
+            line_end = ax_length * 0.95
+            line_heights = [bottom + height, bottom + height - 0.08, bottom]
+            for line_height in line_heights:
+                ax_km.plot([line_start, line_end], [line_height, line_height], color='black', linewidth=1)
+        except ConvergenceError:
+            print(f'{groupby}, {time}, {status} ConvergenceError')
 
     # 设置图的坐标标签，范围等参数
     ax_km.set_xlabel('')

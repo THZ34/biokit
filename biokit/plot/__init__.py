@@ -9,3 +9,4 @@ from ._roc_plot import rocplot,rocplots
 from ._variants_landscape import oncoplot
 from ._volcano_plot import volcano_plot
 from ._lasso import lassocv
+from ._bar import cumulative_bar

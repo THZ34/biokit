@@ -72,12 +72,12 @@ def crosstab_plot(crosstab=None, value_x=None, value_y=None, xlabel=None, ylabel
     # 行类名和行类
     ax.table([[i] for i in crosstab.index], cellLoc='center', edges='open', zorder=2,
              bbox=(0.5 / fig_width, 0, 0.5 / fig_width, table_height / fig_height))
-    ax.text(x=0.25, y=table_height / 2, s=xlabel, rotation=90, ha='center', zorder=2, va='center')
+    ax.text(x=0.25, y=table_height / 2, s=ylabel, rotation=90, ha='center', zorder=2, va='center')
 
     # 列类名和列类
     ax.table([crosstab.columns.to_list()], cellLoc='center', zorder=2,
              bbox=((1 / fig_width), table_height / fig_height, table_width / fig_width, 0.5 / fig_height), edges='open')
-    ax.text(x=1 + table_width / 2, y=table_height + 0.75, s=ylabel, ha='center', zorder=2, va='center')
+    ax.text(x=1 + table_width / 2, y=table_height + 0.75, s=xlabel, ha='center', zorder=2, va='center')
 
     # 圆角矩形色块
     # 行分类名

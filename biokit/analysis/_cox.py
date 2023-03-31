@@ -1,5 +1,5 @@
 import warnings
-from copy import copy
+import copy
 
 import numpy as np
 import pandas as pd
@@ -119,14 +119,14 @@ def cox(df, time='time', status='status', variables=None, mod='single', drop_by_
 
                 vif_drop_discrete = sorted(list(set([i[0] for i in vif_drop]) & set(discrete_index)))
                 # 删除值完全相同的重复变量
-                for col in copy(dup_cols):
+                for col in copy.copy(dup_cols):
                     if dup_col_pair[col][0] in vif_drop_discrete:
                         dup_cols = dup_cols.drop(col)
-                for col in copy(dup_refs):
+                for col in copy.copy(dup_refs):
                     if col[0] in vif_drop_discrete:
                         dup_refs.remove(col)
                 # 如果是离散变量，删除同一变量的其他子类
-                for col in copy(multi_ref_variables):
+                for col in copy.copy(multi_ref_variables):
                     if col[0] in vif_drop_discrete:
                         multi_ref_variables.remove(col)
 

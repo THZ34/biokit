@@ -6,6 +6,7 @@ from adjustText import adjust_text
 def volcano_plot(df, x='log2fc', y='-log10p', color=None, color_dict=None, anno=None, ax=None, groupnames=None):
     """
 
+    :param groupnames:
     :param anno:
     :param df:
     :param x:
@@ -40,7 +41,6 @@ def volcano_plot(df, x='log2fc', y='-log10p', color=None, color_dict=None, anno=
         groupnames = ('case', 'control')
     casename, controlname = groupnames
 
-
     # 画点
     for key in color_dict:
         temp_df = df[df[color] == key]
@@ -57,21 +57,23 @@ def volcano_plot(df, x='log2fc', y='-log10p', color=None, color_dict=None, anno=
     # case control 箭头
     xmax = df[x].abs().max()
     ymax = df[y].max()
-    width = 0.3
+    # width = 0.3
+    width = ymax * 0.04
     head_width = width * 1.5
     shape = 'full'
-    ax.arrow(x=-0.1 * xmax, y=ymax * 1.05, dx=-0.8 * xmax, dy=0, color=color_dict['down'], length_includes_head=True,
+    ax.arrow(x=-0.1 * xmax, y=ymax * 1.1, dx=-0.8 * xmax, dy=0, color=color_dict['down'], length_includes_head=True,
              width=width, head_width=head_width, shape=shape)
-    ax.arrow(x=0.1 * xmax, y=ymax * 1.05, dx=0.8 * xmax, dy=0, color=color_dict['up'], length_includes_head=True,
+    ax.arrow(x=0.1 * xmax, y=ymax * 1.1, dx=0.8 * xmax, dy=0, color=color_dict['up'], length_includes_head=True,
              width=width, head_width=head_width, shape=shape)
-    ax.text(x=0.55 * xmax, y=ymax * 1.1, s=f'high expression in {casename}', fontsize=10, fontweight='bold',
-            ha='center')
-    ax.text(x=-0.55 * xmax, y=ymax * 1.1, s=f'high expression in {controlname}', fontsize=10, fontweight='bold',
-            ha='center')
+    ax.text(x=0.12 * xmax, y=ymax * 1.15, s=f'high expression in {casename}', fontsize=10, fontweight='bold',
+            ha='left')
+    ax.text(x=-0.12 * xmax, y=ymax * 1.15, s=f'high expression in {controlname}', fontsize=10, fontweight='bold',
+            ha='right')
 
     #
     ax.set_xlabel(x)
     ax.set_ylabel(y)
     ax.set_xlim(xmax * -1.05, xmax * 1.05)
-    ax.set_ylim(0, ymax * 1.2)
+    ax.set_ylim(0, ymax * 1.23)
+    # ax.set_ylim(0, ymax)
     return ax

@@ -27,3 +27,4 @@ def cumulative_bar(df, color_dict=None, ax=None):
     ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
     plt.tight_layout()
     return ax
+

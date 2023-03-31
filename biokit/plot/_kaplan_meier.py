@@ -83,14 +83,13 @@ def kaplan_meier(grouped_df, groupby, time='time', status='status', groups=None,
 
     # 表格在图的右上角显示，三线表格式，以全图长宽为参考，表格长度=0.5，高度= (组数+1) x 0.08
     if cox_analysis:
-        # print(grouped_df)
         # 整理表格
         try:
             cox_df = cox(grouped_df[[time, status, groupby]], time=time, status=status, mod='multiple',
                          ref_dict={groupby: cox_ref or groups[0]})
             cox_table = [['group', f'median {time}', 'cox HR(95CI)', 'cox p-value']]
             for group in groups:
-                hr, hr_l, hr_h, cox_p = cox_df.loc[groupby].loc[group]
+                hr, hr_l, hr_h, cox_p = cox_df.loc[(groupby, group), ['HR', 'HR(95CI-Low)', 'HR(95CI-High)', 'p-value']]
                 cox_table.append(
                     [group, f'{kmf_dict[group].median_survival_time_:0.1f}', f'{hr:0.1f}({hr_l:0.1f}~{hr_h:0.1f})',
                      f'{cox_p:0.2e}' if cox_p < 0.0001 else f'{cox_p:0.4f}'])

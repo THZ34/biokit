@@ -1,6 +1,13 @@
 CHANGES
 =======
 
+* fix: analysis.cox 在检查重复列时不会再将time和status列入检查范围
+* Changes
+* Changes
+* Update README.md
+* Changes
+* Changes
+* Update README.md
 * 新增preprocessing.km\_best\_cutoff, 以p值为导向找到最佳cutoff
 * 优化circos图, 添加data package
 * cox识别的离散变量类型中添加了bool(最开始只有object)

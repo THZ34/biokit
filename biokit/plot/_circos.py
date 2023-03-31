@@ -374,7 +374,6 @@ class Circos(object):
             ax.plot(curve[:, 0], curve[:, 1], color=color, linewidth=linewidth, alpha=alpha)
 
     def bezierareaplot(self, data, value, y, linewidth, linepoints, color_dict, alpha):
-        print('bezier_area')
         ax = self.ax
         for start1, end1, start2, end2, color in data[['start1', 'end1', 'start2', 'end2', value]].to_numpy():
             color = color_dict[color]
@@ -415,7 +414,6 @@ class Circos(object):
                     c='black')
 
     def scatter(self, data, value_col, y, size, style, color_dict):
-        print(color_dict)
         ax = self.ax
         for value in color_dict.keys():
             temp_data = data[data[value_col] == value]
@@ -429,7 +427,6 @@ class Circos(object):
                     fontsize=fontsize)
 
     def barplot(self, data, value_cols, y, width=0.8, vmax=None, hue_color=None, hue_label=None):
-        print(y)
         data = data.copy()
         if not vmax:
             vmax = data[value_cols].max().max() * 1.25

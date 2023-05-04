@@ -60,11 +60,12 @@ def volcano_plot(df, x='log2fc', y='-log10p', color=None, color_dict=None, anno=
     # width = 0.3
     width = ymax * 0.04
     head_width = width * 1.5
+    head_length = 0.15 * xmax
     shape = 'full'
     ax.arrow(x=-0.1 * xmax, y=ymax * 1.1, dx=-0.8 * xmax, dy=0, color=color_dict['down'], length_includes_head=True,
-             width=width, head_width=head_width, shape=shape)
+             width=width, head_width=head_width, shape=shape,head_length=head_length)
     ax.arrow(x=0.1 * xmax, y=ymax * 1.1, dx=0.8 * xmax, dy=0, color=color_dict['up'], length_includes_head=True,
-             width=width, head_width=head_width, shape=shape)
+             width=width, head_width=head_width, shape=shape,head_length=head_length)
     ax.text(x=0.12 * xmax, y=ymax * 1.15, s=f'high expression in {casename}', fontsize=10, fontweight='bold',
             ha='left')
     ax.text(x=-0.12 * xmax, y=ymax * 1.15, s=f'high expression in {controlname}', fontsize=10, fontweight='bold',

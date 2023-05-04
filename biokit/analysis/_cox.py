@@ -163,6 +163,8 @@ def cox(df, time='time', status='status', variables=None, mod='single', drop_by_
         if len(groups) > 1:
             for group in groups:
                 n_samples.append(df[df[groupby] == group].shape[0])
+        else:
+            n_samples.append(df.shape[0])
     cox_result['n_sample'] = n_samples
 
     return cox_result

@@ -254,7 +254,7 @@ class Circos(object):
         df['end'] = [start + chr_ring_start_dict[chrom] for chrom, start in df[['chr', 'end']].to_numpy()]
         return df
 
-    def plot_base(self, colors=None, alpha=1, y=None):
+    def plot_base(self, colors=None, alpha=1, y=None, fontproperties=None):
         ax = self.ax
         rings = self.rings
         bottom = self.bottom
@@ -269,8 +269,10 @@ class Circos(object):
         ax.barh(y=y, height=0.8, left=chr_df['chr_ring_start'], width=chr_df['length'], color=colors,
                 edgecolor='grey', alpha=alpha)
         for chrom, start, length in chr_df[['chr', 'chr_ring_start', 'length']].to_numpy():
-            ax.text(x=start + length / 2, y=y + 1, s=chrom, va='center', ha='center',
-                    rotation=360 * (start + length / 2) / (2 * pi) - 90)
+            # ax.text(x=start + length / 2, y=y + 1, s=chrom, va='center', ha='center',
+            #         rotation=360 * (start + length / 2) / (2 * pi) - 90, fontproperties=fontproperties)
+            ax.text(x=start + length / 2, y=y + 2, s=chrom, va='center', ha='center',
+                    rotation=360 * (start + length / 2) / (2 * pi) - 90, fontsize=20, fontweight='bold')
         for layer in self.background_ring:
             self.plot_layer(layer, y)
 

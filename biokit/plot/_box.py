@@ -3,8 +3,7 @@ import pandas as pd
 import seaborn as sns
 from scipy.stats import f_oneway, ttest_ind
 import scipy
-from biokit.plot import scicolors
-
+from ._colors import scicolors
 
 def p2text(p, cutoff):
     for cutoff_value in sorted(list(cutoff.keys())):

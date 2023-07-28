@@ -3,7 +3,7 @@ import pandas as pd
 import seaborn as sns
 from scipy.stats import f_oneway, ttest_ind
 import scipy
-from ._colors import scicolors
+
 
 def p2text(p, cutoff):
     for cutoff_value in sorted(list(cutoff.keys())):
@@ -15,7 +15,6 @@ def p2text(p, cutoff):
 def exp_box(data, var, groupby, order=None, cutoff=None, test='t', no_ns=False, kind='box', ax=None,
             color_dict=None, meanline=False, cutoff_color=None):
     """
-
     :param meanline:
     :param color_dict:
     :param data: pandas DataFrame
@@ -120,15 +119,22 @@ def exp_box(data, var, groupby, order=None, cutoff=None, test='t', no_ns=False, 
 
 
 # test_box
-def testbox(data, y, groupby, groups=None, testfunc=ttest_ind, x=0, cutoff=None, width=0.4, ax=None,
+def testbox(data, y, groupby, groups=None, testfunc=ttest_ind, kind='box', x=0, cutoff=None, width=0.4, ax=None,
             colors=None, cutoff_color=None):
     """
-    :param data: pandas DataFrame
-    :param y: y axis
-    :param groupby: groupby
-    :param groups: groups of groupby
-    :param testfunc: test function
-    :return: pandas DataFrame
+
+    :param data:
+    :param y:
+    :param groupby:
+    :param groups:
+    :param testfunc:
+    :param x:
+    :param cutoff:
+    :param width:
+    :param ax:
+    :param colors:
+    :param cutoff_color:
+    :return:ax,p
     """
     if not groups:
         groups = data[groupby].unique()
@@ -158,8 +164,8 @@ def testbox(data, y, groupby, groups=None, testfunc=ttest_ind, x=0, cutoff=None,
     p_text = p2text(p, cutoff)
     ax.text(x=x, y=ymax * 1.06, s=p_text, color=cutoff_color[p_text], horizontalalignment='center',
             fontweight='bold', fontsize=16)
-    ax.set_title(y, fontsize=30)
-    ax.set_ylabel(y, fontsize=20)
+    ax.set_title(y, fontsize=20)
+    # ax.set_ylabel(y, fontsize=20)
     ax.set_xticklabels(groups)
     ax.set_ylim((0, ymax * 1.1))
-    return ax
+    return ax, p

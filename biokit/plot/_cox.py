@@ -35,8 +35,10 @@ def forest_plot(cox_result, ax=None):
         if len(groups) > 1:
             index_dict[groupby] = groups
             for group in groups:
-                hr, hr_l, hr_h, n_sample = cox_result[['HR', 'HR(95CI-Low)', 'HR(95CI-High)', 'n_sample']].loc[groupby].loc[group]
-                if (groupby, group) in cox_result.multi_ref_variables:
+                hr, hr_l, hr_h, pvalue, n_sample = \
+                cox_result[['HR', 'HR(95CI-Low)', 'HR(95CI-High)', 'p-value', 'n_sample']].loc[
+                    (groupby, group)]
+                if hr == hr_l == hr_h == pvalue == 1:
                     group_ref_cox_table.append([groupby, f'{group}\n(n={n_sample})', 'reference'])
                 else:
                     if hr_h < 1000:
@@ -123,7 +125,7 @@ def forest_plot(cox_result, ax=None):
         if line[0] != '':
             groupby = line[0]
         group = line[1].split('\n')[0]
-        hr, hr_l, hr_h, p = cox_result.loc[groupby, group]
+        hr, hr_l, hr_h, p = cox_result.loc[(groupby, group), ['HR', 'HR(95CI-Low)', 'HR(95CI-High)', 'p-value']]
 
         # 如果HR high是无穷大，画箭头
         if hr_l == 0:

@@ -15,7 +15,8 @@ ncounter_parser <- function(ncounter_raw) {
   return(grp, exp_df)
 }
 
-deg_func1 <- function(exp_df, grp) { dge <- DGEList(counts = exp_df, group = grp)
+deg_func1 <- function(exp_df, grp) {
+  dge <- DGEList(counts = exp_df, group = grp)
   dge <- calcNormFactors(dge)
   design <- model.matrix(~grp)
 

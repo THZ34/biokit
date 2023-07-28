@@ -53,9 +53,10 @@ class Circos(object):
 
     def add_layer(self, data, value_col, kind, ring, color_dict=None, height=None, linepoints=None,
                   size=None, alpha=None, marker=None, rotation=None, vmax=None, width=None, hue_color=None,
-                  hue_label=None):
+                  hue_label=None, smooth=None, n_smooth=None, **kwargs):
         """向环中添加一个图层
 
+        :param smooth:
         :param hue_label:
         :param hue_color:
         :param width:
@@ -119,6 +120,9 @@ class Circos(object):
         elif kind == 'line':
             layer['data'] = self.coordinating(data)
             layer['linewidth'] = size or 5
+            layer['smooth'] = smooth or False
+            layer['n_smooth'] = n_smooth or 100
+            layer['color'] = color_dict or 'black'
 
         elif kind == 'bezier' or kind == 'bezierarea':
             values = data[value_col].unique()
@@ -147,6 +151,7 @@ class Circos(object):
             layer['data'] = self.coordinating(data)
             layer['scattersize'] = size or 10
             layer['marker'] = marker or 'o'
+            layer['height'] = height or 0
             values = data[value_col].unique()
             layer['color'] = color_dict or dict(zip(values, sns.hls_palette(len(values))))
 
@@ -156,7 +161,7 @@ class Circos(object):
     def set_base(self, chr_df, interval_proportion=0.1, keep_space=0.5):
         """设定基础坐标层，其他层的横坐标会基于这一层进行矫正
 
-        :param keep_space:
+        :param keep_space: 留空的范围
         :param interval_proportion:
         :param chr_df:
         :return: None
@@ -186,7 +191,7 @@ class Circos(object):
         for chrom in chr_order:
             chr_df.append([chrom, 0, karyoband_df[karyoband_df['chr'] == chrom]['end'].max()])
         chr_df = pd.DataFrame(chr_df, columns=['chr', 'start', 'end'])
-        self.set_base(chr_df)
+        self.set_base(chr_df, 0.1, 0)
 
         # 条带
         karyoband_df = self.coordinating(karyoband_df)
@@ -218,7 +223,7 @@ class Circos(object):
         chr_df.rename({'gene': 'chr'}, axis=1, inplace=True)
         chr_df['end'] -= chr_df['start']
         chr_df['start'] = 0
-        self.set_base(chr_df, 0.5)
+        self.set_base(chr_df, 0.1, 0)
 
         gene_ref = ref_df[['chr', 'gene', 'start', 'end']].copy()
         gene_ref.index = gene_ref['gene']
@@ -254,27 +259,33 @@ class Circos(object):
         df['end'] = [start + chr_ring_start_dict[chrom] for chrom, start in df[['chr', 'end']].to_numpy()]
         return df
 
-    def plot_base(self, colors=None, alpha=1, y=None, fontproperties=None):
+    def plot_base(self, colors=None, alpha=1, y=None, fontproperties=None, plot_chrom=True, text_chrom=True,
+                  plot_band=True):
         ax = self.ax
         rings = self.rings
         bottom = self.bottom
         if not y:
             y = bottom + len(rings)
         background = self.background
+        chr_df = background
 
         if not colors:
             colors = ['grey'] * background.shape[0]
-        # 染色体
-        chr_df = background
-        ax.barh(y=y, height=0.8, left=chr_df['chr_ring_start'], width=chr_df['length'], color=colors,
-                edgecolor='grey', alpha=alpha)
-        for chrom, start, length in chr_df[['chr', 'chr_ring_start', 'length']].to_numpy():
-            # ax.text(x=start + length / 2, y=y + 1, s=chrom, va='center', ha='center',
-            #         rotation=360 * (start + length / 2) / (2 * pi) - 90, fontproperties=fontproperties)
-            ax.text(x=start + length / 2, y=y + 2, s=chrom, va='center', ha='center',
-                    rotation=360 * (start + length / 2) / (2 * pi) - 90, fontsize=20, fontweight='bold')
-        for layer in self.background_ring:
-            self.plot_layer(layer, y)
+
+        if plot_chrom:
+            ax.barh(y=y, height=0.8, left=chr_df['chr_ring_start'], width=chr_df['length'], color=colors,
+                    edgecolor='grey', alpha=alpha)
+        # 染色体名
+        if text_chrom:
+            for chrom, start, length in chr_df[['chr', 'chr_ring_start', 'length']].to_numpy():
+                ax.text(x=start + length / 2, y=y + 2, s=chrom, va='center', ha='center',
+                        rotation=360 * (start + length / 2) / (2 * pi) - 90,
+                        fontsize=fontproperties.get('fontsize', 20),
+                        fontweight=fontproperties.get('fontweight', 'bold'))
+        # 染色体条带
+        if plot_band:
+            for layer in self.background_ring:
+                self.plot_layer(layer, y)
 
     def plot_rings(self, rings=None):
         """循环绘制每个环"""
@@ -296,13 +307,15 @@ class Circos(object):
         value_col = layer['value_col']
         color_dict = layer.get('color', 'deepskyblue')
         height = layer.get('height', 0.8)
-        linewidth = layer.get('linewidth', 5)
+        linewidth = layer.get('linewidth', 50)
         linepoints = layer.get('linepoints', 50)
         fontsize = layer.get('fontsize', 50)
         alpha = layer.get('alpha', 1)
         scattersize = layer.get('scattersize', 5)
         marker = layer.get('marker', 'O')
         rotation = layer.get('rotation', 0)
+        smooth = layer.get('smooth', False)
+        n_smooth = layer.get('n_smooth', 100)
 
         if kind == 'barh':
             self.barhplot(data, value_col, height, y, color_dict)
@@ -319,7 +332,9 @@ class Circos(object):
         elif kind == 'text':
             self.textanno(data, value_col, y, fontsize, rotation)
         elif kind == 'scatter':
-            self.scatter(data, value_col, y, scattersize, marker, color_dict)
+            self.scatter(data, value_col, y, height, scattersize, marker, color_dict)
+        elif kind == 'line':
+            self.lineplot(data, value_col, y, linewidth, smooth, n_smooth, color_dict)
 
     def draw(self):
         rings = self.rings
@@ -415,11 +430,38 @@ class Circos(object):
             ax.plot([true_x, true_x, adjust_x, adjust_x], [y, y + 0.15 * height, y + 0.85 * height, y + height],
                     c='black')
 
-    def scatter(self, data, value_col, y, size, style, color_dict):
+    def lineplot(self, data, value_col, y, linewidth, smooth, n_smooth, color_dict):
+        data['x'] = data[['start', 'end']].mean(1)
+        print(data['x'])
+        data['y'] = y + (data[value_col] - data[value_col].min()) / (data[value_col].max() - data[value_col].min())
+
+        if smooth:
+            from scipy.interpolate import make_interp_spline
+            smooth_x = np.linspace(data['x'].min(), data['x'].max(), n_smooth)
+            smooth_y = make_interp_spline(data['x'], data['y'])(smooth_x)
+        else:
+            smooth_x = data['x']
+            smooth_y = data['y']
+        # 首尾衔接
+        smooth_x = smooth_x.tolist()
+        smooth_x.append(smooth_x[0])
+        smooth_y = smooth_y.tolist()
+        smooth_y.append(smooth_y[0])
+
+
         ax = self.ax
+        ax.plot(smooth_x, smooth_y, linewidth=linewidth, color=color_dict)
+
+    def scatter(self, data, value_col, y, height, size, style, color_dict):
+        ax = self.ax
+        if height == 0:
+            data['y'] = y
+        elif height in data.columns:
+            data['y'] = y + (data[height] - data[height].min()) / (data[height].max() - data[height].min())
+
         for value in color_dict.keys():
             temp_data = data[data[value_col] == value]
-            ax.scatter(x=temp_data[['start', 'end']].mean(1).to_list(), y=[y] * temp_data.shape[0], marker=style,
+            ax.scatter(x=temp_data[['start', 'end']].mean(1).to_list(), y=temp_data['y'], marker=style,
                        c=color_dict[value], s=size)
 
     def annotate_rings(self, xs, ys, texts, fontsize=15):

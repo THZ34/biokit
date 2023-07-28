@@ -53,7 +53,7 @@ def scicolors(n_colors, style='style1'):
         colors = hex_color_dict[style]
     else:
         step = len(hex_color_dict[style]) // n_colors
-        colors = hex_color_dict[style][::step]
+        colors = hex_color_dict[style][:step:]
     return colors[:n_colors]
 
 

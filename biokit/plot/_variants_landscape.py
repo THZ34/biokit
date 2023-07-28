@@ -6,8 +6,8 @@ from scipy.sparse import coo_matrix
 from biokit.plot._heatmap import heatmap_cumulativebox, heatmap_circledot
 
 
-def oncoplot(mutations, sample_info, figsize=None, color_dict=None, discrete_colors=None, fraction_lim=None,
-             info_loc=None, fraction_annot=False, legend_cc=1, allow_multi_hits=True, heatmap_kind='box'):
+def oncoplot(mutations, sample_info=None, figsize=None, color_dict=None, discrete_colors=None, fraction_lim=None,
+             info_loc=None, fraction_annot=False, legend_cc=1, allow_multi_hits=True, heatmap_kind='box', legends=None):
     """oncoplot 瀑布图
 
 
@@ -28,11 +28,14 @@ def oncoplot(mutations, sample_info, figsize=None, color_dict=None, discrete_col
     """
     # 矩阵预处理，生成heatmap稀疏矩阵，提取样本名，基因名和突变类型
     mutations = mutations.copy()
-    sample_info = sample_info.copy()
     xticklabels = mutations.columns
     yticklabels = mutations.index
     mutations.index = range(mutations.shape[0])
     mutations.columns = range(mutations.shape[1])
+
+    if sample_info is None:
+        sample_info = pd.DataFrame(index=xticklabels)
+    sample_info = sample_info.copy()
 
     # 如果不允许基因多位点突变，将所有多位点突变替换成multi_hits
     if not allow_multi_hits:
@@ -72,6 +75,11 @@ def oncoplot(mutations, sample_info, figsize=None, color_dict=None, discrete_col
     for col in sample_info.columns:
         if col not in info_loc['upper'] and col not in info_loc['bottom']:
             info_loc['upper'].append(col)
+
+    # 检查需要添加的图例
+    if not legends:
+        legends = ['Variants Type'] + sample_info.columns.to_list()
+
     # 画图前准备
     if not figsize:
         figsize = (mutations.shape[1] + 3, len(discrete_columns) + len(continuous_columns) * 2 + len(yticklabels) + 3)
@@ -135,8 +143,10 @@ def oncoplot(mutations, sample_info, figsize=None, color_dict=None, discrete_col
         discrete_colors = {}
 
     for column in discrete_columns:
-        values = sorted(list(set(sample_info[column])))
-        discrete_colors.setdefault(column, dict(zip(values, sns.hls_palette(len(values)))))
+        if column not in discrete_colors:
+            values = sorted(list(set(sample_info[column])))
+            discrete_colors.setdefault(column, dict(zip(values, sns.hls_palette(len(values)))))
+
     sample_info.index = range(sample_info.shape[0])
 
     # 画图 - 临床信息
@@ -287,13 +297,13 @@ def oncoplot(mutations, sample_info, figsize=None, color_dict=None, discrete_col
 
     ax_heatmap = ax_dict['heatmap']
     for title in titles:
-        ax = axes_require_legend[title]
-        handles, labels = ax.get_legend_handles_labels()
-        legend = ax_heatmap.legend(handles=handles, labels=labels, title=title, bbox_to_anchor=(
-            (mutations.shape[1] + 3) / mutations.shape[1], 1 - (top_of_legend * legend_cc / 50)), ncol=1,
-                                   loc='upper left',
-                                   fontsize=15, title_fontsize=15)
-        ax_heatmap.add_artist(legend)
-        top_of_legend += (len(labels) + 2)
-
+        if title in legends:
+            ax = axes_require_legend[title]
+            handles, labels = ax.get_legend_handles_labels()
+            legend = ax_heatmap.legend(handles=handles, labels=labels, title=title, bbox_to_anchor=(
+                (mutations.shape[1] + 3) / mutations.shape[1], 1 - (top_of_legend * legend_cc / 50)), ncol=1,
+                                       loc='upper left',
+                                       fontsize=15, title_fontsize=15)
+            ax_heatmap.add_artist(legend)
+            top_of_legend += (len(labels) + 2)
     return fig, discrete_columns, continuous_columns, figsize, ax_dict

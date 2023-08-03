@@ -12,160 +12,76 @@ def p2text(p, cutoff):
     return 'ns'
 
 
-def exp_box(data, var, groupby, order=None, cutoff=None, test='t', no_ns=False, kind='box', ax=None,
-            color_dict=None, meanline=False, cutoff_color=None):
-    """
-    :param meanline:
-    :param color_dict:
-    :param data: pandas DataFrame
-    :param var: variation name
-    :param groupby: x axis
-    :param figsize: tuple e.p. (4,8)
-    :param order: sort x
-    :param cutoff: dictory of cutoff and label
-    :return: axes
-    """
-    if not cutoff:
-        cutoff = {0.05: '*', 0.01: '**', 0.001: '***', 0.0001: '****'}
-    if not cutoff_color:
-        cutoff_color = dict(
-            zip(['*', '**', '***', '****', 'ns'], ['orange', 'darkorange', 'orangered', 'red', 'deepskyblue']))
-    if not order:
-        order = sorted(list(set(data[groupby])))
-
-    # box and strip (violin and strip)
-    if kind == 'box':
-        sns.boxplot(x=groupby, y=var, data=data, width=0.7, order=order, ax=ax)
-    elif kind == 'violin':
-        sns.violinplot(x=groupby, y=var, data=data, width=0.7, order=order, ax=ax)
-    elif kind == 'boxen':
-        sns.boxenplot(x=groupby, y=var, data=data, width=0.7, order=order, ax=ax)
-    else:
-        print('Support only box, violin and boxen')
-
-    sns.stripplot(x=groupby, y=var, data=data, color='black', size=1, jitter=0.4, order=order, ax=ax)
-    # mean line
-    if meanline:
-        for i in range(len(order)):
-            group = order[i]
-            mean = data[data[groupby] == group][var].mean()
-            ax.plot([i + 0.3, i - 0.3], [mean, mean], c='red', label='mean value', linewidth=3)
-
-    ax.set_xlim(-0.5, len(order) - 0.5)
-    # plt.xticks(rotation=30)
-    ax.set_title(var, fontsize=30)
-    ax.set_ylabel('')
-    test_df = pd.DataFrame(columns=['pval', 'stat'])
-    # define Statistical function
-    if test == 't':
-        def tmp_func(value_i, value_j):
-            f = scipy.stats.levene(list(values_i), list(values_j))  # test for homogeneity of variance
-            if f.pvalue <= 0.05:
-                ttest = scipy.stats.ttest_ind(list(values_i), list(values_j), equal_var=False)
-            else:
-                ttest = scipy.stats.ttest_ind(list(values_i), list(values_j), equal_var=True)
-            return ttest
-
-        test_func = tmp_func
-    elif test == 'anova':
-        test_func = f_oneway
-    else:
-        raise ValueError('t or anova')
-    # Statistical significance
-    cutoff_list = list(cutoff.keys())
-    cutoff_list.sort()
-    iter_list = []
-    print(cutoff_list)
-    for span in range(1, len(order)):
-        for i in range(len(order) - span):
-            iter_list.append((i, i + span))
-    height = 1.2  # height of test label
-    text_list = []
-    for i, j in iter_list:
-        obs_i = order[i]
-        obs_j = order[j]
-        values_i = data[data[groupby] == obs_i][var]
-        values_j = data[data[groupby] == obs_j][var]
-        test = test_func(values_i, values_j)
-        print(test)
-        # significant
-        max = data[var].max()
-        if set(values_i) == set(values_j):
-            text = 'ns'
-        else:
-            for c in cutoff_list:
-                if test.pvalue <= c:
-                    text = cutoff[c]
-                    break
-                else:
-                    text = 'ns'
-        text_list.append(text)
-        if text == 'ns' and no_ns == True:
-            pass
-        else:
-            ax.plot([obs_i, obs_j], [height * max, height * max], c='black')
-            ax.plot([obs_i, obs_i], [(height - 0.02) * max, height * max], c='black')
-            ax.plot([obs_j, obs_j], [(height - 0.02) * max, height * max], c='black')
-            ax.text(x=(i + j) / 2, y=(height + 0.01) * max, s=text, horizontalalignment='center',
-                    fontweight='bold', fontsize=16, c=cutoff_color[text])
-            height += 0.1
-        if no_ns:
-            ax.set_ylim(0, data[var].max() * (
-                    1.2 + 0.1 * len(order) * (len(order) - 1) / 2 - 0.1 * pd.value_counts(text).get('ns', 0)))
-        else:
-            ax.set_ylim(0, data[var].max() * (1.2 + 0.1 * len(order) * (len(order) - 1) / 2))
-    plt.tight_layout()
-    return plt.gcf()
-
-
-# test_box
-def testbox(data, y, groupby, groups=None, testfunc=ttest_ind, kind='box', x=0, cutoff=None, width=0.4, ax=None,
-            colors=None, cutoff_color=None):
+def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_ind, kind='box', cutoff=None,
+            width=0.8, ax=None, colors=None, cutoff_color=None):
     """
 
     :param data:
     :param y:
+    :param x:
     :param groupby:
     :param groups:
     :param testfunc:
-    :param x:
+    :param kind:
     :param cutoff:
     :param width:
     :param ax:
     :param colors:
     :param cutoff_color:
-    :return:ax,p
+    :return:
     """
+    from seaborn import color_palette
+    import math
+    # 生成默认参数
+
     if not groups:
-        groups = data[groupby].unique()
-    if len(groups) != 2:
-        raise ValueError('Groups of groupby must be 2')
-    if not set(groups).issubset(set(data[groupby])):
-        raise ValueError('Groups must be subset of groupby')
-    if not colors:
-        colors = sns.color_palette(n_colors=2)
+        groups = data[groupby].unique().tolist()
+    n_groups = len(groups)
     if not ax:
-        fig, ax = plt.subplots(figsize=(4, 8))
+        fig, ax = plt.subplots(figsize=(2 * n_groups, 8))
+    if not ylim:
+        ymax = data[data[groupby].isin(groups)][y].max()
+        ymin = data[data[groupby].isin(groups)][y].min()
+        ylength = ymax - ymin
+        ptext_y_interval = ylength * 0.05
+    else:
+        ymin, ymax = ylim
+        ylength = ymax - ymin
+        ptext_y_interval = ylength * 0.05
+    if not set(groups).issubset(set(data[groupby])):
+        raise ValueError('Groups must be subset of data[groupby].values')
+    if not colors:
+        colors = color_palette(n_colors=len(groups))
     if not cutoff:
         cutoff = {0.05: '*', 0.01: '**', 0.001: '***', 0.0001: '****'}
     if not cutoff_color:
         cutoff_color = dict(
             zip(['*', '**', '***', '****', 'ns'], ['orange', 'darkorange', 'orangered', 'red', 'deepskyblue']))
 
-    data = data[[y, groupby]]
-    stat, p = testfunc(data[data[groupby] == groups[0]][y], data[data[groupby] == groups[1]][y])
-    positions = [x - width / 2, x + width / 2]
-    for group, color, position in zip(groups, colors, positions):
-        ax.boxplot(data[data[groupby] == group][y], positions=[position], widths=width, patch_artist=True,
-                   boxprops={'facecolor': color})
-    ymax = data[y].max()
-    ax.plot([positions[0], positions[0], positions[1], positions[1]],
-            [ymax * 1.03, ymax * 1.05, ymax * 1.05, ymax * 1.03], c='black')
-    p_text = p2text(p, cutoff)
-    ax.text(x=x, y=ymax * 1.06, s=p_text, color=cutoff_color[p_text], horizontalalignment='center',
-            fontweight='bold', fontsize=16)
-    ax.set_title(y, fontsize=20)
-    # ax.set_ylabel(y, fontsize=20)
-    ax.set_xticklabels(groups)
-    ax.set_ylim((0, ymax * 1.1))
-    return ax, p
+    # 确定box坐标
+    data = data.copy()
+    box_width = width / n_groups
+    position_start = x - width / 2 + box_width / 2
+    positions = [position_start + i * box_width for i in range(n_groups)]
+    # 画图box
+    for group, position, color in zip(groups, positions, colors):
+        ax.boxplot(data[data[groupby] == group][y], positions=[position],
+                   widths=box_width, patch_artist=True, boxprops={'facecolor': color})
+    # 依次计算组间p-value并在图中标注
+    ptext_y_bottom = ymax + ptext_y_interval
+    n_text = 0
+    for interval in range(1, n_groups):
+        for i in range(n_groups - interval):
+            group1 = groups[i]
+            group2 = groups[i + interval]
+            x1 = positions[i]
+            x2 = positions[i + interval]
+            pvalue = testfunc(data[data[groupby] == group1][y], data[data[groupby] == group2][y]).pvalue
+            ptext = p2text(pvalue, cutoff)
+            ptext_y = ptext_y_bottom + n_text * ptext_y_interval
+            ax.text((x1 + x2) / 2, ptext_y, ptext, ha='center', va='bottom',
+                    color=cutoff_color[ptext])
+            ax.plot([x1, x1, x2, x2], [ptext_y - 0.6 * ptext_y_interval, ptext_y,
+                                       ptext_y, ptext_y - 0.6 * ptext_y_interval], color=cutoff_color[ptext])
+    return ax
+

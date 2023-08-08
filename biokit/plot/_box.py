@@ -5,7 +5,7 @@ from scipy.stats import f_oneway, ttest_ind
 import scipy
 
 
-def p2text(p, cutoff):
+def p2text_func(p, cutoff):
     for cutoff_value in sorted(list(cutoff.keys())):
         if p <= cutoff_value:
             return cutoff[cutoff_value]
@@ -13,7 +13,7 @@ def p2text(p, cutoff):
 
 
 def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_ind, kind='box', cutoff=None,
-            width=0.8, ax=None, colors=None, cutoff_color=None):
+            width=0.8, ax=None, colors=None, cutoff_color=None, p2text=True):
     """
 
     :param data:
@@ -57,7 +57,6 @@ def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_i
     if not cutoff_color:
         cutoff_color = dict(
             zip(['*', '**', '***', '****', 'ns'], ['orange', 'darkorange', 'orangered', 'red', 'deepskyblue']))
-
     # È·¶¨box×ø±ê
     data = data.copy()
     box_width = width / n_groups
@@ -77,11 +76,14 @@ def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_i
             x1 = positions[i]
             x2 = positions[i + interval]
             pvalue = testfunc(data[data[groupby] == group1][y], data[data[groupby] == group2][y]).pvalue
-            ptext = p2text(pvalue, cutoff)
+            if p2text:
+                ptext = p2text_func(pvalue, cutoff)
+                color = cutoff_color[ptext]
+            else:
+                ptext = f'{pvalue:0.2f}'
+                color = 'black'
             ptext_y = ptext_y_bottom + n_text * ptext_y_interval
-            ax.text((x1 + x2) / 2, ptext_y, ptext, ha='center', va='bottom',
-                    color=cutoff_color[ptext])
-            ax.plot([x1, x1, x2, x2], [ptext_y - 0.6 * ptext_y_interval, ptext_y,
-                                       ptext_y, ptext_y - 0.6 * ptext_y_interval], color=cutoff_color[ptext])
+            ax.text((x1 + x2) / 2, ptext_y, ptext, ha='center', va='bottom', color=color)
+            ax.plot([x1, x1, x2, x2], [ptext_y - 0.6 * ptext_y_interval, ptext_y, ptext_y, ptext_y - 0.6 * ptext_y_interval], color=color)
+    ax.set_xticklabels(groups)
     return ax
-

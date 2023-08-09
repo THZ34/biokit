@@ -51,7 +51,7 @@ def rocplots(states=None, values=None, colors=None, plot=True, ax=None, linestyl
     return cutoffs, aucs
 
 
-def rocplot(value, status, ax, label='', color='deepskyblue', linestyle=(0, (2, 2, 1, 1)), fill=False, linewidth=10):
+def rocplot(value, status, ax=None, label='', color='deepskyblue', linestyle=(0, (2, 2, 1, 1)), fill=False, linewidth=10):
     fpr, tpr, thresholds = roc_curve(status, value)
     ax.plot(fpr, tpr, color=color, label=label, linestyle=linestyle,linewidth=linewidth)
     if fill:

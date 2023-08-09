@@ -12,3 +12,4 @@ from ._lasso import lassocv
 from ._bar import cumulative_bar
 from ._colors import scicolors, show_scicolors
 from ._timescape import timescape, mutation_timescape
+from ._evolution_tree import EvolutionTree

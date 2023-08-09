@@ -7,6 +7,7 @@ import seaborn as sns
 import pandas as pd
 import numpy as np
 
+
 # %%
 def sigmoid(y1, y2, n_smooth=100):
     s_curve_x = np.linspace(0, 10, n_smooth) - 5
@@ -45,7 +46,7 @@ def mutation_timescape(df, timepoints=None, color_dict=None, figsize=None, n_smo
     timescape_ax_xlim = \
         timescape(raw_df, timepoints=timepoints, color_dict=color_dict, n_smooth=n_smooth, alpha=alpha, ax=ax)[1]
     ax.set_xlim(timescape_ax_xlim)
-    # Í»±äÆµÂÊ
+    # çªå˜é¢‘ç‡
     for i, mut in enumerate(df.index[1:]):
         ax = fig.add_subplot(grid[4 + i:5 + i, :])
         ax_dict[mut] = ax
@@ -70,7 +71,7 @@ def mutation_timescape(df, timepoints=None, color_dict=None, figsize=None, n_smo
 
 
 def timescape(df, timepoints=None, color_dict=None, n_smooth=100, alpha=0.5, ax=None):
-    """timescapeÍ¼
+    """timescapeå›¾
     """
     if not color_dict:
         color_dict = dict(zip(df.index, sns.hls_palette(df.shape[0])))
@@ -78,21 +79,21 @@ def timescape(df, timepoints=None, color_dict=None, n_smooth=100, alpha=0.5, ax=
         fig, ax = plt.subplots(figsize=(8, 4))
     if not timepoints:
         timepoints = list(range(df.shape[1]))
-    # ±ê×¼»¯vaf
+    # æ ‡å‡†åŒ–vaf
     raw_df = df.copy()
     df = raw_df.copy()
     df.insert(0, 'day0', 0)
     base_df = pd.DataFrame([[0] * df.shape[1]], index=['base'], columns=df.columns)
     df = pd.concat([base_df, df], axis=0)
     cum_df = df.cumsum(axis=0)
-    center_df = cum_df - cum_df.mean()
-    # ±ê×¼»¯Ê±¼äµãºá×ø±ê
+    center_df = cum_df - df.sum() / 2
+    # æ ‡å‡†åŒ–æ—¶é—´ç‚¹æ¨ªåæ ‡
     timepoints = np.array(timepoints)
     timepoints = (timepoints - timepoints.min()) / (timepoints.max() - timepoints.min())
     timepoints = timepoints * raw_df.shape[1]
     timepoints = timepoints + 1
     timepoints = [0] + timepoints.tolist()
-    # Éú³ÉÇúÏß
+    # ç”Ÿæˆæ›²çº¿
     curves = []
     curvex = []
     for i in range(df.shape[1] - 1):
@@ -107,24 +108,23 @@ def timescape(df, timepoints=None, color_dict=None, n_smooth=100, alpha=0.5, ax=
             temp_curve_y = sigmoid(y1, y2, n_smooth=n_smooth)
             curve_y.extend(temp_curve_y)
         curves.append(curve_y)
-    # Ìî³äÇúÏß
+    # å¡«å……æ›²çº¿
     for i in range(raw_df.shape[0]):
         mut = df.index[i + 1]
         curvey1 = curves[i]
         curvey2 = curves[i + 1]
         ax.fill_between(curvex, curvey1, curvey2, color=color_dict[mut], alpha=alpha)
-    #
     timescape_ax_xlim = (-0.25, max(timepoints) + 0.25)
     ax.set_xticks(timepoints)
     xticklabels_bottom = ['timepoint'] + list(df.columns[1:])
     ax.set_xticklabels(xticklabels_bottom)
     ax.set_yticks([])
     ax.set_xlim(timescape_ax_xlim)
-    ax.grid(axis='x', linestyle='--', alpha=1, linewidth=1)  # Íø¸ñÏß
+    ax.grid(axis='x', linestyle='--', alpha=1, linewidth=1)  # ç½‘æ ¼çº¿
     ax2 = ax.twiny()
     ax2.set_xticks(timepoints)
     xticklabels_upper = ['Max variant \nallele fraction (%)'] + [f'{vaf * 100:0.2f}' for vaf in df.max()[1:]]
     ax2.set_xticklabels(xticklabels_upper)
     ax2.set_xlim(timescape_ax_xlim)
 
-    return ax, timescape_ax_xlim
+    return (ax, ax2), timescape_ax_xlim, center_df

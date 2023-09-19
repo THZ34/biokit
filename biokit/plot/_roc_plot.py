@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
-from sklearn.metrics import roc_curve, roc_auc_score
 import seaborn as sns
+from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_curve
 
 
 # ROC曲线
@@ -51,9 +51,10 @@ def rocplots(states=None, values=None, colors=None, plot=True, ax=None, linestyl
     return cutoffs, aucs
 
 
-def rocplot(value, status, ax=None, label='', color='deepskyblue', linestyle=(0, (2, 2, 1, 1)), fill=False, linewidth=10):
+def rocplot(value, status, ax=None, label='', color='deepskyblue', linestyle=(0, (2, 2, 1, 1)), fill=False,
+            linewidth=10):
     fpr, tpr, thresholds = roc_curve(status, value)
-    ax.plot(fpr, tpr, color=color, label=label, linestyle=linestyle,linewidth=linewidth)
+    ax.plot(fpr, tpr, color=color, label=label, linestyle=linestyle, linewidth=linewidth)
     if fill:
         fill_x = fpr
         fill_x = np.append(fill_x, [[1]])

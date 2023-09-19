@@ -65,9 +65,8 @@ def show_scicolors():
             ax.barh(y=i, width=0.8, height=0.8, left=j, color=color)
     ax.set_xticks([])
     ax.set_yticks(range(len(hex_color_dict)))
-    ax.set_yticklabels(hex_color_dict.keys(),fontsize=16)
+    ax.set_yticklabels(hex_color_dict.keys(), fontsize=16)
     ax.spines.clear()
     ax.invert_yaxis()
     plt.tight_layout()
     plt.show()
-

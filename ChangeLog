@@ -1,8 +1,10 @@
 CHANGES
 =======
 
+* 优化timescape，新增进化树EvolutionTree作图
 * 新增timescape画图和trtmb计算
 * 更新testbox，支持超过两个分组
+* Delete sampleid.pdf
 * Change
 * Change
 * Change

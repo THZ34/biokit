@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from matplotlib.ticker import MultipleLocator
-from seaborn import color_palette
 from sklearn.linear_model import LassoCV
 
 
@@ -39,7 +38,7 @@ def lassocv(X=None, y=None, ax=None, alphas=None, cv=10, random_state=0, linewid
     for mse_row, alpha, i in zip(model.mse_path_, model.alphas, range(len(model.alphas))):
         mse_max = np.max(mse_row)
         mse_min = np.min(mse_row)
-        ax.plot([i,i], [mse_min, mse_max], color='k', linewidth=linewidth)
+        ax.plot([i, i], [mse_min, mse_max], color='k', linewidth=linewidth)
         ax.plot([i - width, i + width], [mse_max, mse_max], color='k', linewidth=linewidth)
         ax.plot([i - width, i + width], [mse_min, mse_min], color='k', linewidth=linewidth)
     ax.scatter(x=lasso_result.index.to_list().index(model.alpha_) + 1, y=lasso_result.loc[model.alpha_]['MSE'], s=5,

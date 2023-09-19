@@ -4,12 +4,12 @@ import warnings
 
 import seaborn as sns
 from lifelines import KaplanMeierFitter
-from lifelines.statistics import multivariate_logrank_test
 from lifelines.exceptions import ConvergenceError
+from lifelines.statistics import multivariate_logrank_test
 from matplotlib import pyplot as plt
+from matplotlib import rcParams
 
 from biokit.analysis import cox
-from matplotlib import rcParams
 
 
 # %%

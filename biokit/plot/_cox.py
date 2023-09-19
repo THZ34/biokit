@@ -36,8 +36,8 @@ def forest_plot(cox_result, ax=None):
             index_dict[groupby] = groups
             for group in groups:
                 hr, hr_l, hr_h, pvalue, n_sample = \
-                cox_result[['HR', 'HR(95CI-Low)', 'HR(95CI-High)', 'p-value', 'n_sample']].loc[
-                    (groupby, group)]
+                    cox_result[['HR', 'HR(95CI-Low)', 'HR(95CI-High)', 'p-value', 'n_sample']].loc[
+                        (groupby, group)]
                 if hr == hr_l == hr_h == pvalue == 1:
                     group_ref_cox_table.append([groupby, f'{group}\n(n={n_sample})', 'reference'])
                 else:

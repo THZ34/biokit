@@ -2,9 +2,9 @@
 # Author:Tang Hongzhen
 # Email: tanghongzhen34@gmail.com
 # %%
+import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
-import matplotlib.pyplot as plt
 
 
 def kobas_barplot(file):

@@ -24,19 +24,19 @@ deg_func1 <- function(exp_df, grp) {
   dge <- estimateGLMTagwiseDisp(dge, design)
   dge <- estimateGLMTrendedDisp(dge, design)
 
-  fit <- glmFit(dge, design,robust = TRUE)
+  fit <- glmFit(dge, design, robust = TRUE)
   lrt <- topTags(glmLRT(fit), n = nrow(dge$counts))
 
   return(lrt$table) }
 
-deg_func2 <- function (exp_df,grp){
-dge <- DGEList(counts=exp_df,genes=rownames(exp_df),grp = grp)
-dge<- calcNormFactors(dge)
-design <- model.matrix(~ grp)
-dge <- estimateGLMCommonDisp(dge, design)
-et_compare1 <- exactTest(dge)
-de_compare1 <- decideTestsDGE(et_compare1)
-tt_compare1 <- topTags(et_compare1, n=Inf)$table
+deg_func2 <- function(exp_df, grp) {
+  dge <- DGEList(counts = exp_df, genes = rownames(exp_df), grp = grp)
+  dge <- calcNormFactors(dge)
+  design <- model.matrix(~grp)
+  dge <- estimateGLMCommonDisp(dge, design)
+  et_compare1 <- exactTest(dge)
+  de_compare1 <- decideTestsDGE(et_compare1)
+  tt_compare1 <- topTags(et_compare1, n = Inf)$table
 }
 
 

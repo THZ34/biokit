@@ -3,8 +3,8 @@
 # Email: tanghongzhen34@gmail.com
 # %%
 import matplotlib.pyplot as plt
-import seaborn as sns
 import numpy as np
+import seaborn as sns
 
 
 class EvolutionTree(object):
@@ -75,7 +75,7 @@ class EvolutionTree(object):
                 self_y = level_nodes_y.get(level - 1, 0) + 1
             level_nodes_y[level] = self_y + 1  # 更新level_nodes_y, 表示本级已经有节点占据了y坐标, 并把下一个点的坐标设为y+1
             # 绘制节点
-            ax.scatter(level, self_y, s=100, c=color_dict[tree_name], zorder=1,edgecolors='k',linewidths=1)
+            ax.scatter(level, self_y, s=100, c=color_dict[tree_name], zorder=1, edgecolors='k', linewidths=1)
             ax.text(x=level, y=self_y + 0.3, s=tree_name, ha='center', va='center', fontsize=10)
             return self_y, ax
         else:
@@ -86,7 +86,7 @@ class EvolutionTree(object):
             self_y = np.mean(childs_y)  # 自身占据子节点y坐标的中间
             level_nodes_y[level] = self_y + 1  # 更新level_nodes_y, 表示本级已经有节点占据了y坐标, 并把下一个点的坐标设为y+1
             # 绘制节点
-            ax.scatter(level, self_y, s=100, c=color_dict[tree_name], zorder=1,edgecolors='k',linewidths=1)
+            ax.scatter(level, self_y, s=100, c=color_dict[tree_name], zorder=1, edgecolors='k', linewidths=1)
             ax.text(x=level, y=self_y + 0.3, s=tree_name, ha='center', va='center', fontsize=10)
             # 绘制从本级到下一级全部节点的连线
             for child_y in childs_y:
@@ -98,4 +98,3 @@ class EvolutionTree(object):
                 ax.set_ylim(-0.5, max(level_nodes_y.values()) + 0.5)
                 self.__level_nodes_y = {}
             return self_y, ax
-

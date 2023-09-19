@@ -15,7 +15,8 @@ import scipy
 import scipy.stats
 import seaborn as sns
 from lifelines import KaplanMeierFitter
-from lifelines.statistics import multivariate_logrank_test, logrank_test
+from lifelines.statistics import logrank_test
+from lifelines.statistics import multivariate_logrank_test
 from scipy.stats import f_oneway
 
 

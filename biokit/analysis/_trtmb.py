@@ -13,9 +13,12 @@ def trtmb_calc(aachange_file):
     Nat Commun 12, 4172 (2021). https://doi.org/10.1038/s41467-021-24457-2
 
     """
-    mut_df = pd.read_csv(aachange_file, sep='\t')
-    mut_df.sort_values(by='VAF', inplace=True)
-    vaf_cutoff = mut_df['VAF'][:5].mean() * 0.6
-    truncal_mut_df = mut_df[mut_df['VAF'] >= vaf_cutoff]
-    trtmb = truncal_mut_df['VAF'].sum() / vaf_cutoff
+    try:
+        mut_df = pd.read_csv(aachange_file, sep='\t')
+        mut_df.sort_values(by='VAF', inplace=True)
+        vaf_cutoff = mut_df['VAF'][:5].mean() * 0.6
+        truncal_mut_df = mut_df[mut_df['VAF'] >= vaf_cutoff]
+        trtmb = truncal_mut_df['VAF'].sum() / vaf_cutoff
+    except pd.errors.EmptyDataError:
+        trtmb = 0
     return trtmb

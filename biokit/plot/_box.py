@@ -1,8 +1,5 @@
 import matplotlib.pyplot as plt
-import pandas as pd
-import seaborn as sns
-from scipy.stats import f_oneway, ttest_ind
-import scipy
+from scipy.stats import ttest_ind
 
 
 def p2text_func(p, cutoff):
@@ -13,7 +10,7 @@ def p2text_func(p, cutoff):
 
 
 def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_ind, kind='box', cutoff=None,
-            width=0.8, ax=None, colors=None, cutoff_color=None, p2text=True):
+            width=0.8, ax=None, colors=None, cutoff_color=None, p2text=True, ):
     """
 
     :param data:
@@ -31,7 +28,6 @@ def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_i
     :return:
     """
     from seaborn import color_palette
-    import math
     # 生成默认参数
 
     if not groups:
@@ -62,10 +58,12 @@ def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_i
     box_width = width / n_groups
     position_start = x - width / 2 + box_width / 2
     positions = [position_start + i * box_width for i in range(n_groups)]
-    # 画图box
-    for group, position, color in zip(groups, positions, colors):
-        ax.boxplot(data[data[groupby] == group][y], positions=[position],
-                   widths=box_width, patch_artist=True, boxprops={'facecolor': color})
+    # 画图box, 并设置颜色
+    fig_objects = ax.boxplot([data[data[groupby] == group][y] for group in groups],
+                             positions=positions, widths=box_width, patch_artist=True)
+    for patch, color in zip(fig_objects['boxes'], colors):
+        patch.set_facecolor(color)
+
     # 依次计算组间p-value并在图中标注
     ptext_y_bottom = ymax + ptext_y_interval
     n_text = 0
@@ -81,9 +79,10 @@ def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_i
                 color = cutoff_color[ptext]
             else:
                 ptext = f'{pvalue:0.2f}'
-                color = 'black'
+                color = 'red' if pvalue < 0.05 else 'black'
             ptext_y = ptext_y_bottom + n_text * ptext_y_interval
             ax.text((x1 + x2) / 2, ptext_y, ptext, ha='center', va='bottom', color=color)
             ax.plot([x1, x1, x2, x2], [ptext_y - 0.6 * ptext_y_interval, ptext_y, ptext_y, ptext_y - 0.6 * ptext_y_interval], color=color)
-    ax.set_xticklabels(groups)
+    if len(ax.get_xticks()) == len(groups):
+        ax.set_xticklabels(groups)
     return ax

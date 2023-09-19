@@ -3,21 +3,34 @@ import pandas as pd
 import seaborn as sns
 from matplotlib import pyplot as plt
 from scipy.sparse import coo_matrix
-from biokit.plot._heatmap import heatmap_cumulativebox, heatmap_circledot
+
+from biokit.plot._heatmap import heatmap_circledot
+from biokit.plot._heatmap import heatmap_cumulativebox
+
+
+def fig_ax_coordinate_transformation(ax, fig_y):
+    figheight = ax.figure.get_figheight()
+    ax_upper = ax.get_position().y1 * figheight * 100
+    ax_bottom = ax.get_position().y0 * figheight * 100
+    ax_height = ax_upper - ax_bottom
+    ax_y = (fig_y - ax_bottom) / ax_height
+    print(fig_y,ax_height)
+    return ax_y
 
 
 def oncoplot(mutations, sample_info=None, figsize=None, color_dict=None, discrete_colors=None, fraction_lim=None,
-             info_loc=None, fraction_annot=False, legend_cc=1, allow_multi_hits=True, heatmap_kind='box', legends=None):
+             info_loc=None, fraction_annot=False, legend_y_adjust=0, legend_interval=10, allow_multi_hits=True,
+             heatmap_kind='box', legendnames=None):
     """oncoplot 瀑布图
 
 
+    :param legend_y_adjust: 图例的y轴坐标调整，默认图例顶端对齐到热图顶端
+    :param legend_interval: 图例之间的间隔
+    :param legendnames:
     :param heatmap_kind: 热图风格，可选box和circle
     :param allow_multi_hits: 如果不允许基因多位点突变，将所有多位点突变替换成multi_hits
-    :param fraction_percent:
     :param info_loc: 临床信息位置
-    :param variants:
     :param fraction_lim:
-    :param legend_cc:
     :param fraction_annot:
     :param discrete_colors:
     :param mutations: 突变矩阵，使用biokit.preprocessing.read_aachange()读取
@@ -77,8 +90,8 @@ def oncoplot(mutations, sample_info=None, figsize=None, color_dict=None, discret
             info_loc['upper'].append(col)
 
     # 检查需要添加的图例
-    if not legends:
-        legends = ['Variants Type'] + sample_info.columns.to_list()
+    if not legendnames:
+        legendnames = ['Variants Type'] + sample_info.columns.to_list()
 
     # 画图前准备
     if not figsize:
@@ -294,16 +307,20 @@ def oncoplot(mutations, sample_info=None, figsize=None, color_dict=None, discret
     axes_require_legend.update(ax_dict['bottom'])
     titles = ['Variants Type']
     titles.extend([col for col in info_loc['upper'] + info_loc['bottom'] if col in discrete_columns])
-
     ax_heatmap = ax_dict['heatmap']
+    legends = []
+    figheight = ax_heatmap.figure.get_figheight()
+    legend_upper = ax_heatmap.get_position().y1 * figheight * 100  # 第一个legend与ax_heatmap顶部对齐
     for title in titles:
-        if title in legends:
+        if title in legendnames:
             ax = axes_require_legend[title]
             handles, labels = ax.get_legend_handles_labels()
+            legend_y = fig_ax_coordinate_transformation(ax_heatmap, legend_upper) + legend_y_adjust
             legend = ax_heatmap.legend(handles=handles, labels=labels, title=title, bbox_to_anchor=(
-                (mutations.shape[1] + 3) / mutations.shape[1], 1 - (top_of_legend * legend_cc / 50)), ncol=1,
-                                       loc='upper left',
-                                       fontsize=15, title_fontsize=15)
+                (mutations.shape[1] + 3) / mutations.shape[1], legend_y), ncol=1,
+                                       loc='upper left', title_fontproperties={'weight': 'bold', 'size': 15},
+                                       fontsize=15)
             ax_heatmap.add_artist(legend)
-            top_of_legend += (len(labels) + 2)
-    return fig, discrete_columns, continuous_columns, figsize, ax_dict
+            legends.append(legend)
+            legend_upper = legend_upper - legend.get_window_extent().height - legend_interval  # 下一个legend的顶部坐标设置在当前legend底部向下legend_interval的位置
+    return fig, discrete_columns, continuous_columns, figsize, ax_dict, legends

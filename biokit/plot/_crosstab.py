@@ -1,10 +1,10 @@
-from matplotlib.patches import FancyBboxPatch
-import pandas as pd
-import matplotlib.pyplot as plt
-import numpy as np
-import seaborn as sns
 from collections import Iterable
 
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+from matplotlib.patches import FancyBboxPatch
 from scipy.stats import fisher_exact
 
 

@@ -71,7 +71,8 @@ def heatmap_circledot(mutations, ax, color_dict=None, sep=','):
         temp_sparse_df = sparse_df[sparse_df['var'] == var]
         if temp_sparse_df.shape[0] > 0:
             for y, x, t1, t2, var in temp_sparse_df.to_numpy():
-                patch = Wedge(center=(x, y), r=0.4, theta1=t1, theta2=t2, fc=color_dict[var], label='_nolegend_', ec='grey')
+                patch = Wedge(center=(x, y), r=0.4, theta1=t1, theta2=t2, fc=color_dict[var], label='_nolegend_',
+                              ec='grey')
                 patches.append(patch)
                 ax.add_patch(patch)
             wedge_container = Container(patches, label=var)

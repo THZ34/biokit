@@ -1,4 +1,5 @@
 from math import pi
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -447,7 +448,6 @@ class Circos(object):
         smooth_x.append(smooth_x[0])
         smooth_y = smooth_y.tolist()
         smooth_y.append(smooth_y[0])
-
 
         ax = self.ax
         ax.plot(smooth_x, smooth_y, linewidth=linewidth, color=color_dict)

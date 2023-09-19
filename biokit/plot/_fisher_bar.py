@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import pandas as pd
-import seaborn as sns
-from scipy.stats import fisher_exact, ttest_ind
+from scipy.stats import fisher_exact
 
 
 def fisher_bar(fisher_df, x, y, y_target, x_order=None, ax=None, y_max=100):
@@ -25,4 +24,3 @@ def fisher_bar(fisher_df, x, y, y_target, x_order=None, ax=None, y_max=100):
     ax.set_title(x, fontsize=20)
     ax.set_ylabel(f'{y}={y_target}(%)')
     return ax, p_value
-

@@ -6,10 +6,11 @@ import numpy as np
 import pandas as pd
 
 
-def sampleinfo_stat(sample_info, cols=None):
-    """统计样本信息"""
+def sampleinfo_stat(sample_info, save=True, cols=None):
+    """缁熻鏍锋湰淇℃伅"""
     if not cols:
         cols = sample_info.columns
+
     stat_df = []
     for col in cols:
         stat_df.append([col, ''])
@@ -18,7 +19,7 @@ def sampleinfo_stat(sample_info, cols=None):
                 stat_df.append([key, value])
         elif sample_info[col].dtype == np.int or sample_info[col].dtype == np.float32 or sample_info[
             col].dtype == np.float64:
-            stat_df.extend([['mean', sample_info[col].mean()], ['quantile25', sample_info[col].quantile(0.25)],
-                            ['median', sample_info[col].median()], ['quantile75', sample_info[col].quantile(0.75)],
-                            ['std', sample_info[col].std()]])
+            stat_df.extend([['interval', f'{sample_info[col].min()}~{sample_info[col].max()}'],
+                            ['mean', sample_info[col].mean()], ['median', sample_info[col].median()]])
+
     return pd.DataFrame(stat_df)

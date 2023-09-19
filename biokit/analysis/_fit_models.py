@@ -1,13 +1,25 @@
 import random
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-from sklearn import linear_model, svm, neighbors, naive_bayes, tree, ensemble, neural_network
+from sklearn import ensemble
+from sklearn import linear_model
+from sklearn import naive_bayes
+from sklearn import neighbors
+from sklearn import neural_network
+from sklearn import svm
+from sklearn import tree
 from sklearn.feature_selection import RFE
-from sklearn.metrics import f1_score, recall_score, precision_score, accuracy_score, r2_score
-from sklearn.model_selection import RepeatedKFold, train_test_split, KFold
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import f1_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import r2_score
+from sklearn.metrics import recall_score
+from sklearn.model_selection import KFold
+from sklearn.model_selection import RepeatedKFold
+from sklearn.model_selection import train_test_split
 
 
 def performance_evaluation(X, y, model):

@@ -2,9 +2,8 @@
 # Author:Tang Hongzhen
 # Email: tanghongzhen34@gmail.com
 # %% 
-import pandas as pd
 import os
-
+import pandas as pd
 data_path = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -36,3 +35,12 @@ def load_hg38_ref():
 def load_xcell_signature():
     import json
     return json.load(open(os.path.join(data_path, 'xCell/xcell_sig.json')))
+
+
+def load_rna_signature():
+    signature_dict = {}
+    with open(os.path.join(data_path, 'RNA_signature/29_signature.gmt')) as f:
+        for line in f:
+            arr = line.strip().split('\t')
+            signature_dict[arr[0]] = arr[2].split(',')
+    return signature_dict

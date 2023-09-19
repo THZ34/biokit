@@ -7,9 +7,9 @@ def sparse_mutation(snv_df):
     """稀疏矩阵转换密集矩阵"""
     mutation_df = snv_df.copy()
     genes = sorted(list(set(mutation_df['gene'])))
-    gene_dict = dict(enumerate(genes))
+    gene_dict = dict(zip(genes, range(len(genes))))
     samples = sorted(list(set(mutation_df['sample'])))
-    sample_dict = dict(enumerate(samples))
+    sample_dict = dict(zip(samples, range(len(samples))))
     mutation_df['gene'].replace(gene_dict, inplace=True)
     mutation_df['sample'].replace(sample_dict, inplace=True)
     mutation_sparse = coo_matrix((mutation_df['effect'], (mutation_df['sample'], mutation_df['gene'])))
@@ -73,7 +73,6 @@ def read_aachange(patients, files, allow_multi_hits=False):
         multi_marked_snv.index = range(multi_marked_snv.shape[0])
         indexer = multi_marked_snv.index[multi_marked_snv['effect'].str.contains(',')]
         multi_marked_snv.loc[indexer, 'effect'] = 'multi_hits'
-
     variants = multi_marked_snv['effect'].unique()
     variants.sort()
 

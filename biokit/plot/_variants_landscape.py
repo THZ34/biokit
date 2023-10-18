@@ -14,7 +14,7 @@ def fig_ax_coordinate_transformation(ax, fig_y):
     ax_bottom = ax.get_position().y0 * figheight * 100
     ax_height = ax_upper - ax_bottom
     ax_y = (fig_y - ax_bottom) / ax_height
-    print(fig_y,ax_height)
+    print(fig_y, ax_height)
     return ax_y
 
 
@@ -301,7 +301,6 @@ def oncoplot(mutations, sample_info=None, figsize=None, color_dict=None, discret
         ax_heatmap.set_xticklabels([])
 
     # 设置图例
-    top_of_legend = 0
     axes_require_legend = {'Variants Type': ax_dict['heatmap']}
     axes_require_legend.update(ax_dict['upper'])
     axes_require_legend.update(ax_dict['bottom'])

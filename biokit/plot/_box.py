@@ -28,7 +28,6 @@ def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_i
     :return:
     """
     from seaborn import color_palette
-    # 生成默认参数
 
     if not groups:
         groups = data[groupby].unique().tolist()
@@ -53,18 +52,15 @@ def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_i
     if not cutoff_color:
         cutoff_color = dict(
             zip(['*', '**', '***', '****', 'ns'], ['orange', 'darkorange', 'orangered', 'red', 'deepskyblue']))
-    # 确定box坐标
     data = data.copy()
     box_width = width / n_groups
     position_start = x - width / 2 + box_width / 2
     positions = [position_start + i * box_width for i in range(n_groups)]
-    # 画图box, 并设置颜色
     fig_objects = ax.boxplot([data[data[groupby] == group][y] for group in groups],
                              positions=positions, widths=box_width, patch_artist=True)
     for patch, color in zip(fig_objects['boxes'], colors):
         patch.set_facecolor(color)
 
-    # 依次计算组间p-value并在图中标注
     ptext_y_bottom = ymax + ptext_y_interval
     n_text = 0
     for interval in range(1, n_groups):
@@ -82,7 +78,9 @@ def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_i
                 color = 'red' if pvalue < 0.05 else 'black'
             ptext_y = ptext_y_bottom + n_text * ptext_y_interval
             ax.text((x1 + x2) / 2, ptext_y, ptext, ha='center', va='bottom', color=color)
-            ax.plot([x1, x1, x2, x2], [ptext_y - 0.6 * ptext_y_interval, ptext_y, ptext_y, ptext_y - 0.6 * ptext_y_interval], color=color)
+            ax.plot([x1, x1, x2, x2],
+                    [ptext_y - 0.6 * ptext_y_interval, ptext_y, ptext_y, ptext_y - 0.6 * ptext_y_interval], color=color)
+            n_text += 1
     if len(ax.get_xticks()) == len(groups):
         ax.set_xticklabels(groups)
     return ax

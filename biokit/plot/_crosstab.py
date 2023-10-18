@@ -132,6 +132,7 @@ def crosstab_plot(crosstab=None, value_x=None, value_y=None, xlabel=None, ylabel
     if show_pvalue:
         pvalue = fisher_exact(crosstab)[1]
         text = f"Fisher's\nexact\np={pvalue:.2f}"
-        ax.text(0.166, 0.833, text, transform=ax.transAxes, ha='center', va='center', fontsize=10, fontweight='bold')
+        ax.text(0.166, 0.833, text, transform=ax.transAxes, ha='center', va='center', fontsize=10, fontweight='bold',
+                color='red' if pvalue < 0.05 else 'black')
 
     return ax

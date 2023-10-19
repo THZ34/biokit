@@ -126,7 +126,7 @@ def kaplan_meier(grouped_df, groupby, time='time', status='status', groups=None,
 
     # 标题颜色，低于0.05设置为红色，否则为黑色
     ax_km.set_title(
-        f'{groupby} p-value:{log_rank.p_value:0.2e}' if log_rank.p_value < 0.0001 else f'{groupby} p-value:{log_rank.p_value:0.2f}',
+        f'{groupby} p-value:{log_rank.p_value:0.2e}' if log_rank.p_value < 0.0001 else f'{groupby} p-value:{log_rank.p_value:0.4f}',
         fontsize=rcParams['font.size'] + 2, color='red' if log_rank.p_value < 0.05 else 'black', y=1.1)
 
     # 获取 number in risk

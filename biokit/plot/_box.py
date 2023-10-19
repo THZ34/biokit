@@ -74,7 +74,7 @@ def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_i
                 ptext = p2text_func(pvalue, cutoff)
                 color = cutoff_color[ptext]
             else:
-                ptext = f'{pvalue:0.2f}'
+                ptext = f'{pvalue:0.4f}' if pvalue > 0.0001 else f'{pvalue:0.2e}'
                 color = 'red' if pvalue < 0.05 else 'black'
             ptext_y = ptext_y_bottom + n_text * ptext_y_interval
             ax.text((x1 + x2) / 2, ptext_y, ptext, ha='center', va='bottom', color=color)

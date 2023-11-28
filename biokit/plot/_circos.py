@@ -276,7 +276,11 @@ class Circos(object):
         if plot_chrom:
             ax.barh(y=y, height=0.8, left=chr_df['chr_ring_start'], width=chr_df['length'], color=colors,
                     edgecolor='grey', alpha=alpha)
-        # 染色体名
+
+        if not fontproperties:
+            fontproperties = {}
+
+            # 染色体名
         if text_chrom:
             for chrom, start, length in chr_df[['chr', 'chr_ring_start', 'length']].to_numpy():
                 ax.text(x=start + length / 2, y=y + 2, s=chrom, va='center', ha='center',

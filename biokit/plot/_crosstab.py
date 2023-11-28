@@ -70,62 +70,62 @@ def crosstab_plot(crosstab=None, value_x=None, value_y=None, xlabel=None, ylabel
     ax.set_ylim(0, fig_height)
     patchs = []
 
-    # ÁĞÁª±í
+    # åˆ—è”è¡¨
     ax.table(crosstab.values, cellLoc='center', edges='open',
              bbox=((1 / fig_width), 0, table_width / fig_width, table_height / fig_height), zorder=2)
 
-    # ĞĞÀàÃûºÍĞĞÀà
+    # è¡Œç±»åå’Œè¡Œç±»
     row_table = ax.table([[i] for i in crosstab.index], cellLoc='center', edges='open', zorder=2,
                          bbox=(0.5 / fig_width, 0, 0.5 / fig_width, table_height / fig_height))
     for cell in row_table.get_celld().values():
         cell.set_text_props(rotation='vertical')
     ax.text(x=0.25, y=table_height / 2, s=ylabel, rotation=90, ha='center', zorder=2, va='center')
 
-    # ÁĞÀàÃûºÍÁĞÀà
+    # åˆ—ç±»åå’Œåˆ—ç±»
     ax.table([crosstab.columns.to_list()], cellLoc='center', zorder=2,
              bbox=((1 / fig_width), table_height / fig_height, table_width / fig_width, 0.5 / fig_height), edges='open')
     ax.text(x=1 + table_width / 2, y=table_height + 0.75, s=xlabel, ha='center', zorder=2, va='center')
 
-    # Ô²½Ç¾ØĞÎÉ«¿é
-    # ĞĞ·ÖÀàÃû
+    # åœ†è§’çŸ©å½¢è‰²å—
+    # è¡Œåˆ†ç±»å
     patch = FancyBboxPatch(xy=(0, 0), width=0.5, height=table_height, color='peru', zorder=1,
                            boxstyle=f'round,pad={pad},rounding_size={rounding_size}')
     patchs.append(patch)
-    # ĞĞ·ÖÀà
+    # è¡Œåˆ†ç±»
     row_colors = sns.light_palette(row_cmap, table_height)
     for y, color in zip(range(table_height), row_colors):
         patch = FancyBboxPatch(xy=(0.5, y), width=0.5, height=1, color=color, zorder=1,
                                boxstyle=f'round,pad={pad},rounding_size={rounding_size}')
         patchs.append(patch)
-    # ÁĞ·ÖÀàÃû
+    # åˆ—åˆ†ç±»å
     patch = FancyBboxPatch(xy=(1, table_height + 0.5), width=table_width, height=0.5, color='steelblue', zorder=1,
                            boxstyle=f'round,pad={pad},rounding_size={rounding_size}')
     patchs.append(patch)
-    # ÁĞ·ÖÀà
+    # åˆ—åˆ†ç±»
     col_colors = sns.light_palette(col_cmap, table_width)
     for x, color in zip(reversed(range(table_width)), col_colors):
         patch = FancyBboxPatch(xy=(x + 1, table_height), width=1, height=0.5, color=color, zorder=1,
                                boxstyle=f'round,pad={pad},rounding_size={rounding_size}')
         patchs.append(patch)
-    # ÁĞÁª±í
+    # åˆ—è”è¡¨
     table_max = crosstab.max().max() + 1
     table_colors = sns.light_palette(table_cmap, 256)
     # table_colors.reverse()
     for x in range(table_width):
         for y in range(table_height):
-            value = crosstab.iloc[-y, x]
+            value = crosstab.iloc[y, x]
             color = table_colors[int(np.floor(256 * value / table_max))]
-            patch = FancyBboxPatch(xy=(x + 1, y), width=1, height=1, color=color, zorder=1,
+            patch = FancyBboxPatch(xy=(x + 1, table_height - y - 1), width=1, height=1, color=color, zorder=1,
                                    boxstyle=f'round,pad={pad},rounding_size={rounding_size}', ec='gainsboro')
             patchs.append(patch)
 
-    # ±³¾°¿ò
+    # èƒŒæ™¯æ¡†
     patch = FancyBboxPatch(xy=(0, 0), width=fig_width, height=fig_height, facecolor=background_param['facecolor'],
                            boxstyle=f'round,pad=0,rounding_size={rounding_size}', zorder=0, linewidth=2,
                            edgecolor=background_param['edgecolor'], linestyle=background_param['linestyle'])
     patchs.append(patch)
 
-    # ÏòaxÌí¼ÓËùÓĞpatch
+    # å‘axæ·»åŠ æ‰€æœ‰patch
     for patch in patchs:
         ax.add_patch(patch)
     #

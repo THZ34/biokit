@@ -4,6 +4,7 @@
 # %%
 import numpy as np
 import pandas as pd
+import gseapy
 
 
 def calculate_average(data, method='arithmetic'):
@@ -13,11 +14,14 @@ def calculate_average(data, method='arithmetic'):
         return np.prod(data) ** (1 / len(data))
     elif method == 'harmonic':
         return len(data) / np.sum(1 / data)
+    elif method == 'ssgsea':
+        result = gp.ssgsea(data=data, gene_sets=data.index, sample_norm_method='rank', outdir=output_file,
+                           processes=1)
     else:
         raise ValueError("Unknown method")
 
 
-def signature_score(exp_df, method='geometric', signature_dict=None):
+def signature_score(exp_df, method='ssgsea', signature_dict=None):
     """
 
     :param method: 评分方法

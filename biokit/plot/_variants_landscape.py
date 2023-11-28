@@ -14,13 +14,13 @@ def fig_ax_coordinate_transformation(ax, fig_y):
     ax_bottom = ax.get_position().y0 * figheight * 100
     ax_height = ax_upper - ax_bottom
     ax_y = (fig_y - ax_bottom) / ax_height
-    print(fig_y, ax_height)
+    # print(fig_y, ax_height)
     return ax_y
 
 
 def oncoplot(mutations, sample_info=None, figsize=None, color_dict=None, discrete_colors=None, fraction_lim=None,
              info_loc=None, fraction_annot=False, legend_y_adjust=0, legend_interval=10, allow_multi_hits=True,
-             heatmap_kind='box', legendnames=None):
+             heatmap_kind='box', legendnames=None,legend_width = 12):
     """oncoplot 瀑布图
 
 
@@ -95,7 +95,8 @@ def oncoplot(mutations, sample_info=None, figsize=None, color_dict=None, discret
 
     # 画图前准备
     if not figsize:
-        figsize = (mutations.shape[1] + 3, len(discrete_columns) + len(continuous_columns) * 2 + len(yticklabels) + 3)
+        figsize = (
+            mutations.shape[1] + 3 + legend_width, len(discrete_columns) + len(continuous_columns) * 2 + len(yticklabels) + 3)
         figsize = (figsize[0] / 4, figsize[1] / 4)
         figsize = (figsize[0] * 1.5, figsize[1] * 1.5)
     fig = plt.figure(figsize=figsize)
@@ -169,8 +170,10 @@ def oncoplot(mutations, sample_info=None, figsize=None, color_dict=None, discret
         if column in discrete_columns:
             for subtype in discrete_colors[column]:
                 tmp_df = sample_info[sample_info[column] == subtype]
-                ax.bar(x=tmp_df.index, height=[1] * tmp_df.shape[0], color=discrete_colors[column][subtype], width=1,
-                       label=subtype)
+                if not tmp_df.empty:
+                    ax.bar(x=tmp_df.index, height=[1] * tmp_df.shape[0], color=discrete_colors[column][subtype],
+                           width=1,
+                           label=subtype)
             ax.spines['left'].set_visible(False)
             ax.set_yticks([])
             ax.set_ylabel(column, rotation=0, ha='right', va='center', fontsize=10)
@@ -322,4 +325,6 @@ def oncoplot(mutations, sample_info=None, figsize=None, color_dict=None, discret
             ax_heatmap.add_artist(legend)
             legends.append(legend)
             legend_upper = legend_upper - legend.get_window_extent().height - legend_interval  # 下一个legend的顶部坐标设置在当前legend底部向下legend_interval的位置
+
+    plt.subplots_adjust(right=1 - legend_width / (7 + legend_width + mutations.shape[1]))
     return fig, discrete_columns, continuous_columns, figsize, ax_dict, legends

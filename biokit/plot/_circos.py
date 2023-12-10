@@ -261,7 +261,7 @@ class Circos(object):
         return df
 
     def plot_base(self, colors=None, alpha=1, y=None, fontproperties=None, plot_chrom=True, text_chrom=True,
-                  plot_band=True):
+                  plot_band=True, fontsize_scale=False):
         ax = self.ax
         rings = self.rings
         bottom = self.bottom
@@ -279,14 +279,15 @@ class Circos(object):
 
         if not fontproperties:
             fontproperties = {}
-
-            # 染色体名
+        fontsize = fontproperties.get('fontsize', 20)
+        fontweight = fontproperties.get('fontweight', 'bold')
+        # 染色体名
         if text_chrom:
             for chrom, start, length in chr_df[['chr', 'chr_ring_start', 'length']].to_numpy():
                 ax.text(x=start + length / 2, y=y + 2, s=chrom, va='center', ha='center',
                         rotation=360 * (start + length / 2) / (2 * pi) - 90,
-                        fontsize=fontproperties.get('fontsize', 20),
-                        fontweight=fontproperties.get('fontweight', 'bold'))
+                        fontsize=fontsize * np.log(1 + length) / np.log(1.45) if fontsize_scale else fontsize,
+                        fontweight=fontweight)
         # 染色体条带
         if plot_band:
             for layer in self.background_ring:
@@ -298,10 +299,12 @@ class Circos(object):
             rings = self.rings
         ymax = self.ymax
         for ring_num in rings:
+            print(f'Plot ring {ring_num}')
             y = ymax - ring_num
             ring = rings[ring_num]
             # 逐层绘制
             for layer in ring:
+                print(f'Plot ring {ring_num} layer {layer["kind"]}')
                 self.plot_layer(layer, y)
 
     def plot_layer(self, layer, y):
@@ -435,18 +438,38 @@ class Circos(object):
             ax.plot([true_x, true_x, adjust_x, adjust_x], [y, y + 0.15 * height, y + 0.85 * height, y + height],
                     c='black')
 
-    def lineplot(self, data, value_col, y, linewidth, smooth, n_smooth, color_dict):
+    def lineplot(self, data, value_col, y, linewidth, smooth, n_smooth, color_dict, ylim=4):
         data['x'] = data[['start', 'end']].mean(1)
-        print(data['x'])
+        data.sort_values(by='x', ascending=True, inplace=True)
+        # 两个区间的中点可能相同导致报错
+        dup_x = data['x'].value_counts()[data['x'].value_counts() > 1].index
+        if dup_x.size > 0:
+            for x in dup_x:
+                xdup_data = data[data['x'].isin(dup_x)]
+                xdup_data['position'] = xdup_data['chr'] + ':' + xdup_data['start'].astype(str) + '-' + xdup_data[
+                    'end'].astype(str)
+                print(', '.join(xdup_data['position'].to_list()) + ' 区间中点相同')
+
+        data.drop_duplicates(subset=['x'], inplace=True)
+
         data['y'] = y + (data[value_col] - data[value_col].min()) / (data[value_col].max() - data[value_col].min())
 
         if smooth:
             from scipy.interpolate import make_interp_spline
             smooth_x = np.linspace(data['x'].min(), data['x'].max(), n_smooth)
-            smooth_y = make_interp_spline(data['x'], data['y'])(smooth_x)
+            smooth_y = make_interp_spline(data['x'].to_numpy(), data['y'], k=1)(smooth_x, )
         else:
             smooth_x = data['x']
             smooth_y = data['y']
+
+        # smooth_y 标准化到ylim 之间
+        if ylim:
+            smooth_y = smooth_y - y
+            smooth_y = smooth_y - smooth_y.min()
+            smooth_y = smooth_y / smooth_y.max()
+            smooth_y = smooth_y * ylim - ylim / 2
+            smooth_y = smooth_y + y
+
         # 首尾衔接
         smooth_x = smooth_x.tolist()
         smooth_x.append(smooth_x[0])
@@ -456,12 +479,13 @@ class Circos(object):
         ax = self.ax
         ax.plot(smooth_x, smooth_y, linewidth=linewidth, color=color_dict)
 
-    def scatter(self, data, value_col, y, height, size, style, color_dict):
+    def scatter(self, data, value_col, y, height, size, style, color_dict,ylim=3):
         ax = self.ax
         if height == 0:
             data['y'] = y
         elif height in data.columns:
-            data['y'] = y + (data[height] - data[height].min()) / (data[height].max() - data[height].min())
+            data['y'] = y + (data[height] - data[height].min()) / (data[height].max() - data[height].min()) *ylim
+
 
         for value in color_dict.keys():
             temp_data = data[data[value_col] == value]

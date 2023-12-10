@@ -10,7 +10,7 @@ def p2text_func(p, cutoff):
 
 
 def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_ind, kind='box', cutoff=None,
-            width=0.8, ax=None, colors=None, cutoff_color=None, p2text=True, ):
+            width=0.8, ax=None, colors=None, cutoff_color=None, p2text=True, **kwargs):
     """
 
     :param data:
@@ -56,8 +56,8 @@ def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_i
     box_width = width / n_groups
     position_start = x - width / 2 + box_width / 2
     positions = [position_start + i * box_width for i in range(n_groups)]
-    fig_objects = ax.boxplot([data[data[groupby] == group][y] for group in groups],
-                             positions=positions, widths=box_width, patch_artist=True)
+    fig_objects = ax.boxplot([data[data[groupby] == group][y] for group in groups], positions=positions,
+                             widths=box_width, patch_artist=True)
     for patch, color in zip(fig_objects['boxes'], colors):
         patch.set_facecolor(color)
 
@@ -84,5 +84,3 @@ def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_i
     if len(ax.get_xticks()) == len(groups):
         ax.set_xticklabels(groups)
     return ax
-
-

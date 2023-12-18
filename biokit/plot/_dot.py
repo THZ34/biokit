@@ -2,8 +2,6 @@
 # Author:Tang Hongzhen
 # Email: tanghongzhen34@gmail.com
 # %%
-
-
 def gsea_pathwayplot(df, column='Adjusted P-value', title='', color='-log10 Padj', cutoff=0.05, top_term=10,
             sizes=None, norm=None, legend=True, figsize=(6, 5.5),
             cmap='RdBu_r', ofname=None, **kwargs):
@@ -126,6 +124,7 @@ def gsea_pathwayplot(df, column='Adjusted P-value', title='', color='-log10 Padj
         fig.savefig(ofname, bbox_inches='tight', dpi=300)
         return
     return ax
+
 
 
 def kobas_dotplot(df, column='Adjusted P-value', title='', color='-log10 Padj', cutoff=0.05, top_term=10,

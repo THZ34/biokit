@@ -6,6 +6,7 @@ from scipy.sparse import coo_matrix
 
 from biokit.plot._heatmap import heatmap_circledot
 from biokit.plot._heatmap import heatmap_cumulativebox
+from itertools import chain
 
 
 def fig_ax_coordinate_transformation(ax, fig_y):
@@ -291,7 +292,9 @@ def oncoplot(mutations, sample_info=None, figsize=None, color_dict=None, discret
 
     # 调整突变比例的坐标系
     ax_dict['mut_stat_gene'].set_ylim(ax_dict['heatmap'].get_ylim())  # 基因突变统计的纵坐标与热图保持一致
-    for ax in sum([[ax_dict['mut_stat_sample']], list(ax_dict['upper'].values()), list(ax_dict['upper'].values())], []):
+    print(ax_dict)
+    print([[ax_dict['mut_stat_sample']], list(ax_dict['upper'].values()), list(ax_dict['upper'].values())])
+    for ax in list(chain.from_iterable([[ax_dict['mut_stat_sample']], list(ax_dict['upper'].values()), list(ax_dict['upper'].values())])):
         ax.set_xlim(-0.6, sample_info.shape[0] - 0.4)
 
     # 转移xtickslabel

@@ -292,8 +292,6 @@ def oncoplot(mutations, sample_info=None, figsize=None, color_dict=None, discret
 
     # 调整突变比例的坐标系
     ax_dict['mut_stat_gene'].set_ylim(ax_dict['heatmap'].get_ylim())  # 基因突变统计的纵坐标与热图保持一致
-    print(ax_dict)
-    print([[ax_dict['mut_stat_sample']], list(ax_dict['upper'].values()), list(ax_dict['upper'].values())])
     for ax in list(chain.from_iterable([[ax_dict['mut_stat_sample']], list(ax_dict['upper'].values()), list(ax_dict['upper'].values())])):
         ax.set_xlim(-0.6, sample_info.shape[0] - 0.4)
 
@@ -316,6 +314,7 @@ def oncoplot(mutations, sample_info=None, figsize=None, color_dict=None, discret
     legends = []
     figheight = ax_heatmap.figure.get_figheight()
     legend_upper = ax_heatmap.get_position().y1 * figheight * 100  # 第一个legend与ax_heatmap顶部对齐
+    print(legendnames)
     for title in titles:
         if title in legendnames:
             ax = axes_require_legend[title]
@@ -327,6 +326,9 @@ def oncoplot(mutations, sample_info=None, figsize=None, color_dict=None, discret
                                        fontsize=15)
             ax_heatmap.add_artist(legend)
             legends.append(legend)
+            # 渲染legend，否则在legend.get_window_extent()时会报错AttributeError: 'NoneType' object has no attribute 'points_to_pixels'
+            renderer = fig.canvas.get_renderer()
+            fig.draw(renderer=renderer)
             legend_upper = legend_upper - legend.get_window_extent().height - legend_interval  # 下一个legend的顶部坐标设置在当前legend底部向下legend_interval的位置
 
     plt.subplots_adjust(right=1 - legend_width / (7 + legend_width + mutations.shape[1]))

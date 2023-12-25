@@ -59,7 +59,6 @@ def heatmap_circledot(mutations, ax, color_dict=None, sep=','):
             interval = 360 / len(vars)
             for t1, t2, var in zip(np.arange(-interval, 360 - interval, interval), np.arange(0, 360, interval),
                                    vars):
-                var = var.capitalize()
                 new_sparse_df.append([row, col, t1, t2, var])
         else:
             var = vars

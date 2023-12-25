@@ -44,3 +44,5 @@ def load_rna_signature():
             arr = line.strip().split('\t')
             signature_dict[arr[0]] = arr[2].split(',')
     return signature_dict
+
+from ._singlecell_marker import load_singlecell_marker

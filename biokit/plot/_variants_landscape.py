@@ -314,7 +314,6 @@ def oncoplot(mutations, sample_info=None, figsize=None, color_dict=None, discret
     legends = []
     figheight = ax_heatmap.figure.get_figheight()
     legend_upper = ax_heatmap.get_position().y1 * figheight * 100  # 第一个legend与ax_heatmap顶部对齐
-    print(legendnames)
     for title in titles:
         if title in legendnames:
             ax = axes_require_legend[title]

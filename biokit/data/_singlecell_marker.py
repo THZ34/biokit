@@ -40,3 +40,45 @@ def load_singlecell_marker():
                    'Endothelial': ['PECAM1', 'CD34', 'VWF']
                    }
     return marker_dict
+
+
+def load_celltree():
+    celltree = cell_tree_dict = {
+        'Immune': {
+            'B cells': {
+                'Germinal Center B': 0,
+                'Memory B': 0,
+                'Naive B': 0,
+                'Activate B': 0,
+                'Plasma B': 0},
+            'T cells': {
+                'CD8 T': {
+                    'Memory CD8 T': 0,
+                    'effector memory CD8 T': 0,
+                    'effector CD8 T': 0,
+                    'exhausted CD8 T': 0,
+                    "Naive CD8 T": 0},
+                'CD4 T': {
+                    "Naive CD4 T": 0,
+                    "Memory CD4 T": 0,
+                    "CD4 Treg": 0,
+                    "CD4 Th1 & Th2": 0,
+                    "CD4 Th17": 0}, },
+            'NK cells': {
+                'NK1': 0,
+                'NK2': 0, },
+            'Monocytes': 0,
+            'Macrophages': 0,
+            'DCs': {
+                'cDC1': 0,
+                'CDC2': 0,
+                'cDC3': 0,
+                'pDC': 0},
+        },
+        'Non-Immune': {
+            'Fibroblast': 0,
+            'smooth muscle cells': 0,
+            'Pericyte': 0,
+            'Epithelial': 0,
+            'Endothelial': 0}
+    }

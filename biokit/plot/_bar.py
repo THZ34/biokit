@@ -30,6 +30,7 @@ def cumulative_bar(df, color_dict=None, ax=None, normalize=False, proportion=Fal
         bottom = [i + j for i, j in zip(bottom, df.loc[sample])]
     ylim = 1 if normalize else df.sum().max() * 1.2
     ax.set_ylim(0, ylim)
+    ax.set_xticks(range(df.shape[1]))
     ax.set_xticklabels(df.columns)
     handles, labels = ax.get_legend_handles_labels()
     handles = handles[::-1]

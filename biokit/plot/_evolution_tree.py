@@ -2,6 +2,7 @@
 # Author:Tang Hongzhen
 # Email: tanghongzhen34@gmail.com
 # %%
+import matplotlib.collections as mpcollections
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
@@ -99,20 +100,10 @@ class EvolutionTree(object):
                 self.__level_nodes_y = {}
             return self_y, ax
 
+
 # %%
 
-def draw(
-    tree,
-    label_func=str,
-    do_show=True,
-    show_confidence=True,
-    # For power users
-    axes=None,
-    branch_labels=None,
-    label_colors=None,
-    *args,
-    **kwargs
-):
+def draw(tree, ax=None, linecolor='black', point_color_dict=None):
     """Plot the given tree using matplotlib (or pylab).
 
     The graphic is a rooted tree, drawn with roughly the same algorithm as
@@ -150,9 +141,9 @@ def draw(
             Whether to show() the plot automatically.
         show_confidence : bool
             Whether to display confidence values, if present on the tree.
-        axes : matplotlib/pylab axes
-            If a valid matplotlib.axes.Axes instance, the phylogram is plotted
-            in that Axes. By default (None), a new figure is created.
+        ax : matplotlib/pylab ax
+            If a valid matplotlib.ax.ax instance, the phylogram is plotted
+            in that ax. By default (None), a new figure is created.
         branch_labels : dict or callable
             A mapping of each clade to the label that will be shown along the
             branch leading to it. By default this is the confidence value(s) of
@@ -167,79 +158,6 @@ def draw(
             None, the label will be shown in black.
 
     """
-    try:
-        import matplotlib.pyplot as plt
-    except ImportError:
-        try:
-            import pylab as plt
-        except ImportError:
-            raise MissingPythonDependencyError(
-                "Install matplotlib or pylab if you want to use draw."
-            ) from None
-
-    import matplotlib.collections as mpcollections
-
-    # Arrays that store lines for the plot of clades
-    horizontal_linecollections = []
-    vertical_linecollections = []
-
-    # Options for displaying branch labels / confidence
-    def conf2str(conf):
-        if int(conf) == conf:
-            return str(int(conf))
-        return str(conf)
-
-    if not branch_labels:
-        if show_confidence:
-
-            def format_branch_label(clade):
-                try:
-                    confidences = clade.confidences
-                    # phyloXML supports multiple confidences
-                except AttributeError:
-                    pass
-                else:
-                    return "/".join(conf2str(cnf.value) for cnf in confidences)
-                if clade.confidence is not None:
-                    return conf2str(clade.confidence)
-                return None
-
-        else:
-
-            def format_branch_label(clade):
-                return None
-
-    elif isinstance(branch_labels, dict):
-
-        def format_branch_label(clade):
-            return branch_labels.get(clade)
-
-    else:
-        if not callable(branch_labels):
-            raise TypeError(
-                "branch_labels must be either a dict or a callable (function)"
-            )
-        format_branch_label = branch_labels
-
-    # options for displaying label colors.
-    if label_colors:
-        if callable(label_colors):
-
-            def get_label_color(label):
-                return label_colors(label)
-
-        else:
-            # label_colors is presumed to be a dict
-            def get_label_color(label):
-                return label_colors.get(label, "black")
-
-    else:
-
-        def get_label_color(label):
-            # if label_colors is not specified, use black
-            return "black"
-
-    # Layout
 
     def get_x_positions(tree):
         """Create a mapping of each clade to its horizontal position.
@@ -260,9 +178,7 @@ def draw(
         """
         maxheight = tree.count_terminals()
         # Rows are defined by the tips
-        heights = {
-            tip: maxheight - i for i, tip in enumerate(reversed(tree.get_terminals()))
-        }
+        heights = {tip: maxheight - i for i, tip in enumerate(reversed(tree.get_terminals()))}
 
         # Internal nodes: place at midpoint of children
         def calc_row(clade):
@@ -270,54 +186,29 @@ def draw(
                 if subclade not in heights:
                     calc_row(subclade)
             # Closure over heights
-            heights[clade] = (
-                heights[clade.clades[0]] + heights[clade.clades[-1]]
-            ) / 2.0
+            heights[clade] = (heights[clade.clades[0]] + heights[clade.clades[-1]]) / 2.0
 
         if tree.root.clades:
             calc_row(tree.root)
         return heights
 
-    x_posns = get_x_positions(tree)
-    y_posns = get_y_positions(tree)
-    # The function draw_clade closes over the axes object
-    if axes is None:
-        fig = plt.figure()
-        axes = fig.add_subplot(1, 1, 1)
-    elif not isinstance(axes, plt.matplotlib.axes.Axes):
-        raise ValueError("Invalid argument for axes: %s" % axes)
-
-    def draw_clade_lines(
-        use_linecollection=False,
-        orientation="horizontal",
-        y_here=0,
-        x_start=0,
-        x_here=0,
-        y_bot=0,
-        y_top=0,
-        color="black",
-        lw=".1",
-    ):
+    def draw_clade_lines(use_linecollection=False, orientation="horizontal", y_here=0, x_start=0, x_here=0, y_bot=0,
+                         y_top=0, color="black", lw=".1", ):
         """Create a line with or without a line collection object.
 
         Graphical formatting of the lines representing clades in the plot can be
         customized by altering this function.
         """
         if not use_linecollection and orientation == "horizontal":
-            axes.hlines(y_here, x_start, x_here, color=color, lw=lw)
+            ax.hlines(y_here, x_start, x_here, color=color, lw=lw, zorder=0)
         elif use_linecollection and orientation == "horizontal":
             horizontal_linecollections.append(
-                mpcollections.LineCollection(
-                    [[(x_start, y_here), (x_here, y_here)]], color=color, lw=lw
-                )
-            )
+                mpcollections.LineCollection([[(x_start, y_here), (x_here, y_here)]], color=color, lw=lw, zorder=0))
         elif not use_linecollection and orientation == "vertical":
-            axes.vlines(x_here, y_bot, y_top, color=color)
+            ax.vlines(x_here, y_bot, y_top, color=color)
         elif use_linecollection and orientation == "vertical":
             vertical_linecollections.append(
-                mpcollections.LineCollection(
-                    [[(x_here, y_bot), (x_here, y_top)]], color=color, lw=lw
-                )
+                mpcollections.LineCollection([[(x_here, y_bot), (x_here, y_top)]], color=color, lw=lw, zorder=0)
             )
 
     def draw_clade(clade, x_start, color, lw):
@@ -330,97 +221,60 @@ def draw(
         if hasattr(clade, "width") and clade.width is not None:
             lw = clade.width * plt.rcParams["lines.linewidth"]
         # Draw a horizontal line from start to here
-        draw_clade_lines(
-            use_linecollection=True,
-            orientation="horizontal",
-            y_here=y_here,
-            x_start=x_start,
-            x_here=x_here,
-            color=color,
-            lw=lw,
-        )
+        draw_clade_lines(use_linecollection=True, orientation="horizontal", y_here=y_here, x_start=x_start,
+                         x_here=x_here, color=linecolor, lw=lw)
         # Add node/taxon labels
-        label = label_func(clade)
-        if label not in (None, clade.__class__.__name__):
-            axes.text(
-                x_here,
-                y_here,
-                " %s" % label,
-                verticalalignment="center",
-                color=get_label_color(label),
-            )
-        # Add label above the branch (optional)
-        conf_label = format_branch_label(clade)
-        if conf_label:
-            axes.text(
-                0.5 * (x_start + x_here),
-                y_here,
-                conf_label,
-                fontsize="small",
-                horizontalalignment="center",
-            )
+        label = [i for i in [clade.name, clade.confidence] if i]
+        label = None if len(label) == 0 else str(label[0])
+
+        print(label)
+        if label:
+            ax.text(x_here, y_here, " %s" % label, ha='center', va="center", color='black', zorder=2,
+                    fontsize=12)
+            ax.scatter(x_here, y_here, s=400, color=point_color_dict[label], zorder=1)
+
         if clade.clades:
             # Draw a vertical line connecting all children
             y_top = y_posns[clade.clades[0]]
             y_bot = y_posns[clade.clades[-1]]
             # Only apply widths to horizontal lines, like Archaeopteryx
-            draw_clade_lines(
-                use_linecollection=True,
-                orientation="vertical",
-                x_here=x_here,
-                y_bot=y_bot,
-                y_top=y_top,
-                color=color,
-                lw=lw,
-            )
-            # Draw descendents
-            for child in clade:
-                draw_clade(child, x_here, color, lw)
+            draw_clade_lines(use_linecollection=True, orientation="vertical", x_here=x_here, y_bot=y_bot, y_top=y_top,
+                             color=linecolor, lw=lw, )
+        # Draw descendents
+        for child in clade:
+            draw_clade(child, x_here, color, lw)
 
-    draw_clade(tree.root, 0, "k", plt.rcParams["lines.linewidth"])
+    if not ax:
+        ax = plt.subplots()
+    if not point_color_dict:
+        all_nodes = tree.get_terminals() + tree.get_nonterminals()
+        labels = []
+
+    horizontal_linecollections = []
+    vertical_linecollections = []
+    x_posns = get_x_positions(tree)
+    y_posns = get_y_positions(tree)
+    draw_clade(tree.root, 0, 'k', plt.rcParams["lines.linewidth"])
 
     # If line collections were used to create clade lines, here they are added
     # to the pyplot plot.
     for i in horizontal_linecollections:
-        axes.add_collection(i)
+        ax.add_collection(i)
     for i in vertical_linecollections:
-        axes.add_collection(i)
-
+        ax.add_collection(i)
     # Aesthetics
-
     try:
         name = tree.name
     except AttributeError:
         pass
     else:
         if name:
-            axes.set_title(name)
-    axes.set_xlabel("branch length")
-    axes.set_ylabel("taxa")
-    # Add margins around the tree to prevent overlapping the axes
+            ax.set_title(name)
+    ax.set_xlabel("branch length")
+    ax.set_ylabel("taxa")
+    # Add margins around the tree to prevent overlapping the ax
     xmax = max(x_posns.values())
-    axes.set_xlim(-0.05 * xmax, 1.25 * xmax)
+    ax.set_xlim(-0.05 * xmax, 1.25 * xmax)
     # Also invert the y-axis (origin at the top)
     # Add a small vertical margin, but avoid including 0 and N+1 on the y axis
-    axes.set_ylim(max(y_posns.values()) + 0.8, 0.2)
-
-    # Parse and process key word arguments as pyplot options
-    for key, value in kwargs.items():
-        try:
-            # Check that the pyplot option input is iterable, as required
-            list(value)
-        except TypeError:
-            raise ValueError(
-                'Keyword argument "%s=%s" is not in the format '
-                "pyplot_option_name=(tuple), pyplot_option_name=(tuple, dict),"
-                " or pyplot_option_name=(dict) " % (key, value)
-            ) from None
-        if isinstance(value, dict):
-            getattr(plt, str(key))(**dict(value))
-        elif not (isinstance(value[0], tuple)):
-            getattr(plt, str(key))(*value)
-        elif isinstance(value[0], tuple):
-            getattr(plt, str(key))(*value[0], **dict(value[1]))
-
-    if do_show:
-        plt.show()
+    ax.set_ylim(max(y_posns.values()) + 0.8, 0.2)

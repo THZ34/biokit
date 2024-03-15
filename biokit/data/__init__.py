@@ -45,4 +45,9 @@ def load_rna_signature():
             signature_dict[arr[0]] = arr[2].split(',')
     return signature_dict
 
+def load_pathway_geneset(database='GO'):
+
+
+
+
 from ._singlecell_marker import load_singlecell_marker

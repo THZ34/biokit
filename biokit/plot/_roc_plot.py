@@ -61,12 +61,12 @@ def rocplot(value, status, ax=None, label='', color='deepskyblue', linestyle=(0,
         fill_y = tpr
         fill_y = np.append(fill_y, [[0]])
         ax.fill(fill_x, fill_y, color='deepskyblue')
-    cutoff = thresholds[np.where((tpr - fpr) == (tpr - fpr).max())]
+    cutoff = thresholds[np.where((tpr - fpr) == (tpr - fpr).max())][0]
     auc = roc_auc_score(status, value)
     # 标记最佳cutoff点
     y = tpr[np.where(thresholds == cutoff)]
     x = fpr[np.where(thresholds == cutoff)]
     ax.scatter(x, y, c='red', s=50, zorder=1)
-    ax.text(x[0] + 0.01, y[0], f'cutoff={cutoff[0]:0.2f}', ha='left', va='center', fontsize=15, fontweight='bold')
+    ax.text(x[0] + 0.01, y[0], f'cutoff={cutoff:0.2f}', ha='left', va='center', fontsize=15, fontweight='bold')
 
     return cutoff, auc

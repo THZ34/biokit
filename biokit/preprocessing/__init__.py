@@ -6,3 +6,4 @@ from ._variants_landscape import read_aachange
 from ._variants_landscape import sort_mutation
 from ._variants_landscape import sparse_mutation
 from ._vcf_to_mutation import vcf_to_mutation
+from ._gene_trans import *

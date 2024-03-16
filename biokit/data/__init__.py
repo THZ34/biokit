@@ -46,8 +46,20 @@ def load_rna_signature():
     return signature_dict
 
 def load_pathway_geneset(database='GO'):
+    pass
 
+def load_genecode_annotation():
+    """return: geneid_df, genename_df, genetype_df"""
+    geneid_df = pd.read_csv(os.path.join(data_path, 'ref/gencode/geneid.csv'), sep='\t', comment='#', header=None)
+    genename_df = pd.read_csv(os.path.join(data_path, 'ref/gencode/genename.csv'), sep='\t', comment='#', header=None)
+    genetype_df = pd.read_csv(os.path.join(data_path, 'ref/gencode/genetype.csv'), sep='\t', comment='#', header=None)
+    return geneid_df, genename_df, genetype_df
 
-
+def load_ensembl_annotation():
+    """return: geneid_df, genename_df, genetype_df"""
+    geneid_df = pd.read_csv(os.path.join(data_path, 'ref/ensembl/geneid.csv'), sep='\t', comment='#', header=None)
+    genename_df = pd.read_csv(os.path.join(data_path, 'ref/ensembl/genename.csv'), sep='\t', comment='#', header=None)
+    genetype_df = pd.read_csv(os.path.join(data_path, 'ref/ensembl/genetype.csv'), sep='\t', comment='#', header=None)
+    return geneid_df, genename_df, genetype_df
 
 from ._singlecell_marker import load_singlecell_marker

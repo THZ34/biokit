@@ -6,7 +6,7 @@
 def init_conda():
     command = """
 conda init --
-# ÅäÖÃ¹úÄÚ¾µÏñÔ´
+# é…ç½®å›½å†…é•œåƒæº
 # conda config --add channels https://mirrors.ustc.edu.cn/anaconda/pkgs/main/
 # conda config --add channels https://mirrors.ustc.edu.cn/anaconda/pkgs/free/
 # conda config --add channels https://mirrors.ustc.edu.cn/anaconda/cloud/conda-forge/
@@ -19,7 +19,7 @@ conda config --add channels https://mirrors.aliyun.com/pypi/simple/
 conda config --add channels http://pypi.douban.com/simple/ 
 conda config --add channels http://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/win-64/
 
-# ÔÚ°²×°Ê±×ÜÊÇÏÔÊ¾°üÔ´
+# åœ¨å®‰è£…æ—¶æ€»æ˜¯æ˜¾ç¤ºåŒ…æº
 conda config --set show_channel_urls yes
 conda config --set always_yes True
     """

@@ -10,7 +10,7 @@ import pandas as pd
 
 # %%
 def download_gencode(versions=None, outdir='ref/gencode'):
-    """ÏÂÔØgencode GRCh38 """
+    """ä¸‹è½½gencode GRCh38 """
     os.makedirs(outdir, exist_ok=True)
     if not versions:
         versions = range(34, 45)
@@ -22,11 +22,11 @@ def download_gencode(versions=None, outdir='ref/gencode'):
             if not os.path.exists(f'{outdir}/{filename}') and not os.path.exists(f'{outdir}/{unzip_filename}'):
                 f.write(f'wget {url} -O {outdir}/{filename}\n')
             else:
-                print(f'{filename}ÒÑ´æÔÚ')
+                print(f'{filename}å·²å­˜åœ¨')
 
 
 def download_ensembl(versions=None, outdir='ref/ensembl'):
-    """ÏÂÔØensembl GRCh38 """
+    """ä¸‹è½½ensembl GRCh38 """
     os.makedirs(outdir, exist_ok=True)
     if not versions:
         versions = range(76, 111)
@@ -38,7 +38,7 @@ def download_ensembl(versions=None, outdir='ref/ensembl'):
             if not os.path.exists(f'{outdir}/{filename}') and not os.path.exists(f'{outdir}/{unzip_filename}'):
                 f.write(f'wget {url} -O {outdir}/{filename}\n')
             else:
-                print(f'{filename}ÒÑ´æÔÚ')
+                print(f'{filename}å·²å­˜åœ¨')
 
 
 def get_gencode_genename_df(versions, outdir):
@@ -49,7 +49,7 @@ def get_gencode_genename_df(versions, outdir):
         version_genename = {}
         version_genetype = {}
         version_geneid = {}
-        # ÌáÈ¡genename
+        # æå–genename
         gencode_gz_file = f'ref/gencode/gencode.v{release_version}.annotation.gtf.gz'
         with gzip.open(gencode_gz_file, 'rt') as file:
             for line in file:
@@ -87,7 +87,7 @@ def get_ensembl_genename_df(versions):
         version_genename = {}
         version_genetype = {}
         version_geneid = {}
-        # ÌáÈ¡genename
+        # æå–genename
         ensembl_gz_file = f'ref/ensembl/Homo_sapiens.GRCh38.{release_version}.gtf.gz'
         with gzip.open(ensembl_gz_file, 'rt') as file:
             for line in file:

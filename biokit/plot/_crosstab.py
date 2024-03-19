@@ -1,4 +1,4 @@
-from collections import Iterable
+from collections.abc import Iterable
 
 import matplotlib.pyplot as plt
 import numpy as np

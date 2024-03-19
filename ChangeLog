@@ -1,6 +1,22 @@
 CHANGES
 =======
 
+* 新增:基因注释识别
+* 修改：优化画图参数和画图风格
+* 修改：优化画图参数和画图风格
+* 新增：从biopython.Plyon中复制的draw\_tree函数
+* 更新celltree
+* 添加环境初始化脚本 添加单细胞注释数据库
+* Change
+* 渲染legend，否则在legend.get\_window\_extent()时会报错AttributeError: 'NoneType' object has no attribute 'points\_to\_pixels'
+* 渲染legend，否则在legend.get\_window\_extent()时会报错AttributeError: 'NoneType' object has no attribute 'points\_to\_pixels'
+* 新版numpy不再支持sum(lists,[])操作，改为 from itertools import chain list(chain.from\_iterable(lists))
+* Changes
+* Changes
+* Change
+* Change
+* Change
+* 优化了oncoplot的图例间隔和图例位置定位方法
 * 优化timescape，新增进化树EvolutionTree作图
 * 新增timescape画图和trtmb计算
 * 更新testbox，支持超过两个分组

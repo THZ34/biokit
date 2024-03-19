@@ -7,7 +7,7 @@ import math
 
 
 def pca_variance_ratio(pca, ax=None):
-    """»æÖÆPCA·½²î¹±Ï×ÂÊÍ¼"""
+    """ç»˜åˆ¶PCAæ–¹å·®è´¡çŒ®ç‡å›¾"""
     if ax is None:
         fig, ax = plt.subplots()
     fig, ax = plt.subplots()
@@ -25,7 +25,7 @@ def pca_variance_ratio(pca, ax=None):
 
 
 def pca_loadings(pca, featurenames=None, n_pcs=2, n_features=None, axes=None):
-    """»æÖÆPCAÔØºÉÍ¼"""
+    """ç»˜åˆ¶PCAè½½è·å›¾"""
     if not axes:
         n_row = math.floor(math.sqrt(n_pcs * 2))
         n_col = math.ceil(n_pcs / n_row)

@@ -2,21 +2,6 @@
 import pandas as pd
 from scipy.sparse import coo_matrix
 
-
-def sparse_mutation(snv_df):
-    """稀疏矩阵转换密集矩阵"""
-    mutation_df = snv_df.copy()
-    genes = sorted(list(set(mutation_df['gene'])))
-    gene_dict = dict(zip(genes, range(len(genes))))
-    samples = sorted(list(set(mutation_df['sample'])))
-    sample_dict = dict(zip(samples, range(len(samples))))
-    mutation_df['gene'].replace(gene_dict, inplace=True)
-    mutation_df['sample'].replace(sample_dict, inplace=True)
-    mutation_sparse = coo_matrix((mutation_df['effect'], (mutation_df['sample'], mutation_df['gene'])))
-    mutation_df = pd.DataFrame(mutation_sparse.todense(), index=samples, columns=genes)
-    return mutation_df
-
-
 def sort_mutation(mut_df):
     mutation_stat = (mut_df != 'no mutate').astype(bool).astype(int)
     mutation_stat['sum'] = mutation_stat.sum(1)
@@ -82,8 +67,7 @@ def read_aachange(patients, files, allow_multi_hits=False):
     variant_dict_reverse[0] = 'no mutate'
 
     multi_marked_snv['effect'].replace(variant_dict, inplace=True)
-    mutations = sparse_mutation(multi_marked_snv)
-    mutations = mutations.T
+    mutations = multi_marked_snv.pivot(index='gene', columns='sample', values='effect')
     mutation_stat = mutations.astype(bool).astype(int)
     mutation_stat['sum'] = mutation_stat.sum(1)
     mutation_stat.sort_values(by='sum', inplace=True, ascending=False)

@@ -78,8 +78,14 @@ def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_i
                 color = 'red' if pvalue < 0.05 else 'black'
             ptext_y = ptext_y_bottom + n_text * ptext_y_interval
             ax.text((x1 + x2) / 2, ptext_y, ptext, ha='center', va='bottom', color=color)
-            ax.plot([x1, x1, x2, x2],
-                    [ptext_y - 0.6 * ptext_y_interval, ptext_y, ptext_y, ptext_y - 0.6 * ptext_y_interval], color=color)
+            if interval == 1:
+                ax.plot([x1, x1, x2, x2],
+                        [ptext_y - 0.6 * ptext_y_interval, ptext_y, ptext_y, ptext_y - 0.6 * ptext_y_interval],
+                        color=color)
+            elif interval > 1:
+                ax.plot([x1, x1, x2, x2],
+                        [ptext_y - 0.3 * ptext_y_interval, ptext_y, ptext_y, ptext_y - 0.3 * ptext_y_interval],
+                        color=color)
             n_text += 1
     if len(ax.get_xticks()) == len(groups):
         ax.set_xticklabels(groups)

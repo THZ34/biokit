@@ -55,16 +55,6 @@ def load_singlecell_marker():
                    'Enteric glial cells': ['CXCL8', 'CXCL14', 'SOX10', 'S100B', 'SOX2', 'HAND2', 'PLP1'],
                    'Pericyte': ['RGS5', 'ACTA2', 'TAGLN', 'MYL9', 'CSPG4', 'ABCC9', 'KCNJ8', 'CNN1', 'DES', 'SYNPO2', ],
                    'Epithelial': ['EPCAM', 'KRT8', 'KRT18'],
-                   'Epithelial subtype1': ['LEFTY1', 'EPHB3', 'LGR5', 'ALDH1B1', 'CDCA7', 'OLFM4'],
-                   'Epithelial subtype2': ["TOP2A", "MKI67", "UBE2C"],
-                   'Epithelial subtype3': ['CLCA4', 'AQP8', 'TMIGD1', 'GUCA2B', 'SULT1A2', 'SLC26A3'],
-                   'Epithelial subtype4': ['SLC26A2', 'CA1', 'KRT20', 'FABP1'],
-                   'Epithelial subtype5': ['SPINK1', 'CLCA1', 'ITLN1', 'LRRC26', 'RETNLB', 'SPINK4', 'REG4', 'FCGBP', ],
-                   'Epithelial subtype6': ['MUC2', 'ZG16', 'BCAS1', 'ENTPD8', 'TFF1', 'TFF3'],
-                   'Epithelial subtype7': ['NOTCH2NL', 'OTOP3', 'BEST4', 'OTOP2', 'CA7'],
-                   'Epithelial subtype8': ['AZGP1', 'HCK', 'LRMP', 'SH2D6', 'HPGDS', 'PTGS1', 'CD44', 'MMP7'],
-                   'Epithelial subtype9': ['APOA1', 'APOA2', 'APOB', 'CYP3A4', 'CYP2E1', 'APOH', 'TACSTD2', 'CXCL8',
-                                           'SCGB1A1'],
                    'Epithelial ciliated': ["C1orf194", "FAM183A", "OMG", "FOXJ1"],
                    'Epithelial AT2': ['SFTPC', 'LAMP3'],
                    'Epithelial AT1': ['AGER', 'PDPN'],
@@ -88,16 +78,17 @@ def load_singlecell_marker():
 def load_celltree():
     celltree = {
         'Immune': {
+            'NK cells': {
+                'NK1': 0,
+                'NK2': 0,
+            },
             'ILC-Innate Lymphoid Cell': {
                 'ILC2': 0,
                 'ILC regs': 0,
                 'ILC1': {
                     'Intraepithelial ILC1': 0,
                     'Lamnia propria ILC1': 0,
-                    'NK cells': {
-                        'NK1': 0,
-                        'NK2': 0,
-                    }
+
                 },
                 'ILC3': {
                     'LTi': 0,
@@ -141,7 +132,7 @@ def load_celltree():
             },
         },
         'Non-Immune': {
-            'Fibroblast': 0,
+            'Fibroblast': {'CAF-Cancer Associated Fibroblast': 0},
             'Smooth muscle cells': 0,
             'Pericyte': 0,
             'Epithelial': {

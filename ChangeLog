@@ -2,6 +2,9 @@ CHANGES
 =======
 
 * Change
+* 新增: 基于metascape docker镜像执行本地metascape分析
+* 新增: GEO数据下载和样本信息爬取
+* Change
 * 新增:基因注释识别
 * 修改：优化画图参数和画图风格
 * 修改：优化画图参数和画图风格

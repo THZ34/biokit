@@ -4,6 +4,7 @@
 # %% 
 import os
 import pandas as pd
+from ._geo import download_gse, get_gse_sampleinfo
 
 data_path = os.path.dirname(os.path.abspath(__file__))
 

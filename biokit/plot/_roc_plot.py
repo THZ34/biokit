@@ -8,7 +8,7 @@ from sklearn.metrics import roc_curve
 # ROC曲线
 
 def rocplots(states=None, values=None, colors=None, plot=True, ax=None, linestyles=None, labels=None, annot_aucs=False,
-             annot_loc=(1, 0)):
+             annot_loc=(1, 0), legend_bbox_to_anchor=(1.05, 1)):
     """分析ROC并画图，返回cutoff,AUC和ROC曲线图
 
     :param annot_loc:
@@ -41,7 +41,7 @@ def rocplots(states=None, values=None, colors=None, plot=True, ax=None, linestyl
         cutoff, auc = rocplot(value=value, status=state, ax=ax, label=label, color=color, linestyle=linestyle)
         cutoffs.append(cutoff)
         aucs.append(auc)
-    ax.legend(bbox_to_anchor=(1, 1))
+    ax.legend(bbox_to_anchor=legend_bbox_to_anchor)
     if annot_aucs:
         max_string_length = max([len(label) for label in labels])
         auc_table = [f'{"AUC":<{max_string_length}}'] + [

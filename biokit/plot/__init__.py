@@ -17,3 +17,4 @@ from ._timescape import mutation_timescape
 from ._timescape import timescape
 from ._variants_landscape import oncoplot
 from ._volcano_plot import volcano_plot
+from ._dot import metascape_dotplot

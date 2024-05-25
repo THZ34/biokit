@@ -2,6 +2,16 @@
 # Author:Tang Hongzhen
 # Email: tanghongzhen34@gmail.com
 # %%
+import sys
+
+import numpy as np
+from matplotlib import pyplot as plt
+from matplotlib.backends.backend_template import FigureCanvas
+from matplotlib.colors import Normalize
+from matplotlib.figure import Figure
+from numpy import unique
+
+
 def gsea_pathwayplot(df, column='Adjusted P-value', title='', color='-log10 Padj', cutoff=0.05, top_term=10,
             sizes=None, norm=None, legend=True, figsize=(6, 5.5),
             cmap='RdBu_r', ofname=None, **kwargs):
@@ -314,14 +324,8 @@ def metascape_dotplot(df, column='Adjusted P-value', title='', color='-log10 Pad
     area = df['sizes'].values
 
     # creat scatter plot
-    if hasattr(sys, 'ps1') and (ofname is None):
-        # working inside python console, show figure
-        fig, ax = plt.subplots(figsize=figsize)
-    else:
-        # If working on commandline, don't show figure
-        fig = Figure(figsize=figsize)
-        canvas = FigureCanvas(fig)
-        ax = fig.add_subplot(111)
+    fig, ax = plt.subplots(figsize=figsize)
+
     vmin = np.percentile(combined_score.min(), 2)
     vmax = np.percentile(combined_score.max(), 98)
     sc = ax.scatter(x=x, y=y, s=area, edgecolors='face', c=combined_score,
@@ -336,10 +340,9 @@ def metascape_dotplot(df, column='Adjusted P-value', title='', color='-log10 Pad
     ax.yaxis.set_major_formatter(plt.FixedFormatter(ylabels))
     ax.set_yticklabels(ylabels, fontsize=16)
 
-    # ax.set_ylim([-1, len(df)])
     ax.grid()
     # colorbar
-    cax = fig.add_axes([0.9, 0.20, 0.03, 0.22])
+    cax = fig.add_axes([0.91, 0.20, 0.02, 0.22])
     cbar = fig.colorbar(sc, cax=cax, )
     cbar.ax.tick_params(right=True)
     cbar.ax.set_title(color, loc='left', fontsize=12)

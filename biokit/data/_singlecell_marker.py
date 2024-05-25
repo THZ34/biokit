@@ -59,7 +59,7 @@ def load_singlecell_marker():
                    'Epithelial AT2': ['SFTPC', 'LAMP3'],
                    'Epithelial AT1': ['AGER', 'PDPN'],
                    'Epithelial Club': ['SCGB1A1'],
-                   'Endothelial': ['PECAM1', 'CD34', 'VWF', 'VWF', 'CD34', 'ACTA2', 'MCAM', 'NID1', 'NID2',
+                   'Endothelial': ['PECAM1', 'CD34', 'VWF', 'CD34', 'ACTA2', 'MCAM', 'NID1', 'NID2',
                                    'HECW2', 'GRB10', 'CA2'],
                    'Endo arterial': ['LTC4S', 'PCSK5', 'BMX', 'HEY1'],
                    'Endo capillary': ['ACE', 'CD320', 'ENPP2', 'SLC14A1', 'TMEM88', 'CD36', 'CA4', 'PASK', 'HIGD1B',

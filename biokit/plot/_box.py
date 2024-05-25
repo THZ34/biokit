@@ -10,7 +10,8 @@ def p2text_func(p, cutoff):
 
 
 def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_ind, kind='box', cutoff=None,
-            width=0.8, ax=None, colors=None, cutoff_color=None, p2text=True, **kwargs):
+            width=0.8, interval='auto', ax=None, colors=None, cutoff_color=None, p2text=True, hide_flier=False,
+            **kwargs):
     """
 
     :param data:
@@ -34,11 +35,22 @@ def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_i
     n_groups = len(groups)
     if not ax:
         fig, ax = plt.subplots(figsize=(2 * n_groups, 8))
+
+    sym = None
     if not ylim:
-        ymax = data[data[groupby].isin(groups)][y].max()
-        ymin = data[data[groupby].isin(groups)][y].min()
-        ylength = ymax - ymin
-        ptext_y_interval = ylength * 0.05
+        if not hide_flier:
+            ymax = data[data[groupby].isin(groups)][y].max()
+            ymin = data[data[groupby].isin(groups)][y].min()
+            ylength = ymax - ymin
+            ptext_y_interval = ylength * 0.05
+        elif hide_flier:
+            iqr = data[data[groupby].isin(groups)][y].quantile(0.75) - data[data[groupby].isin(groups)][y].quantile(
+                0.25)
+            ymax = iqr * 1.5 + data[data[groupby].isin(groups)][y].quantile(0.75)
+            ymin = data[data[groupby].isin(groups)][y].min()
+            ylength = ymax - ymin
+            ptext_y_interval = ylength * 0.05
+            sym = ''
     else:
         ymin, ymax = ylim
         ylength = ymax - ymin
@@ -53,14 +65,18 @@ def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_i
         cutoff_color = dict(
             zip(['*', '**', '***', '****', 'ns'], ['orange', 'darkorange', 'orangered', 'red', 'deepskyblue']))
     data = data.copy()
+    if interval == 'auto':
+        interval = 1 - width
     box_width = width / n_groups
-    position_start = x - width / 2 + box_width / 2
-    positions = [position_start + i * box_width for i in range(n_groups)]
+    interval_width = box_width * interval / width
+    position_start = x - (width + interval) / 2 + box_width / 2
+    positions = [position_start + i * box_width + i * interval_width for i in range(n_groups)]
     fig_objects = ax.boxplot([data[data[groupby] == group][y] for group in groups], positions=positions,
-                             widths=box_width, patch_artist=True)
+                             widths=box_width, patch_artist=True, sym=sym)
     for patch, color in zip(fig_objects['boxes'], colors):
         patch.set_facecolor(color)
 
+    ymax = ax.get_ylim()[1]
     ptext_y_bottom = ymax + ptext_y_interval
     n_text = 0
     for interval in range(1, n_groups):

@@ -9,12 +9,15 @@ import time
 import pandas as pd
 from bs4 import BeautifulSoup
 import os
-def get_gse_sampleinfo(gseid, sample_info):
+
+
+def get_gse_sampleinfo(gseid):
     url = f'https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc={gseid}&targ=self&view=brief&form=text'
     series_info = requests.get(url).text
     pattern = re.compile(r'!Series_sample_id = (GSM\d+)')
     gsmids = pattern.findall(series_info)
     t_list = []
+    sample_info = {}
     for gsmid in gsmids:
         t = Thread(target=get_gsm_sampleinfo, args=(gsmid, sample_info))
         t.start()
@@ -25,7 +28,11 @@ def get_gse_sampleinfo(gseid, sample_info):
     for t in t_list:
         t.join()
         n_completed += 1
-        print(f'“—≈¿»°: {n_completed}/{n_samples}\r', end='')
+        print(f'Â∑≤Áà¨Âèñ: {n_completed}/{n_samples}\r', end='')
+    # Ë°•Êºè
+    for gsmid in gsmids:
+        if gsmid not in sample_info:
+            get_gsm_sampleinfo(gsmid, sample_info)
 
     sample_info_df = pd.DataFrame(sample_info).T
     return sample_info_df

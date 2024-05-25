@@ -41,7 +41,7 @@ def download_ensembl(versions=None, outdir='ref/ensembl'):
                 print(f'{filename}已存在')
 
 
-def get_gencode_genename_df(versions, outdir):
+def get_gencode_genename_df(versions):
     genename_df = {}
     genetype_df = {}
     geneid_df = {}

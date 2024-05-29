@@ -285,7 +285,7 @@ class Circos(object):
         if text_chrom:
             for chrom, start, length in chr_df[['chr', 'chr_ring_start', 'length']].to_numpy():
                 ax.text(x=start + length / 2, y=y + 2, s=chrom, va='center', ha='center',
-                        rotation=360 * (start + length / 2) / (2 * pi) - 90,
+                        rotation=360 * (start + length / 2) / (2 * pi) - 90 + fontproperties.get('rotation', 0),
                         fontsize=fontsize * np.log(1 + length) / np.log(1.45) if fontsize_scale else fontsize,
                         fontweight=fontweight)
         # 染色体条带
@@ -479,13 +479,12 @@ class Circos(object):
         ax = self.ax
         ax.plot(smooth_x, smooth_y, linewidth=linewidth, color=color_dict)
 
-    def scatter(self, data, value_col, y, height, size, style, color_dict,ylim=3):
+    def scatter(self, data, value_col, y, height, size, style, color_dict, ylim=3):
         ax = self.ax
         if height == 0:
             data['y'] = y
         elif height in data.columns:
-            data['y'] = y + (data[height] - data[height].min()) / (data[height].max() - data[height].min()) *ylim
-
+            data['y'] = y + (data[height] - data[height].min()) / (data[height].max() - data[height].min()) * ylim
 
         for value in color_dict.keys():
             temp_data = data[data[value_col] == value]

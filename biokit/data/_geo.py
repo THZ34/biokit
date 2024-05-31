@@ -46,7 +46,16 @@ def get_gsm_sampleinfo(gsmid, sampleinfo_dict):
     for tr_tag in tr_tags:
         td_list = tr_tag.find_all('td')
         if len(td_list) == 2:
-            gsm_info[td_list[0].text] = td_list[1].text
+            if td_list[0].text == 'Characteristics':
+                content = td_list[1].get_text(separator="\n")
+                for line in content.split('\n'):
+                    if line:
+                        key, value = line.split(': ')
+                        gsm_info[key] = value
+                break
+            else:
+                gsm_info[td_list[0].text] = td_list[1].text
+
     sampleinfo_dict[gsmid] = gsm_info
 
 

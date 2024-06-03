@@ -231,7 +231,7 @@ def rfe_features(X, y, model):
     # 第一轮
     n_features_to_select = 10000
     step = 100
-    rfe = RFE(estimator=model, n_features_to_select=n_features_to_select, step=step)
+    rfe = RFE(estimator=model.copy(), n_features_to_select=n_features_to_select, step=step)
     rfe.fit(X, y)
     ranking_1 = pd.DataFrame([X.columns, rfe.ranking_]).T.sort_values(by=1)
     ranking_1[1] = ranking_1[1][ranking_1[1] > 1] * step + n_features_to_select
@@ -240,7 +240,7 @@ def rfe_features(X, y, model):
     # 第二轮
     n_features_to_select = 2000
     step = 20
-    rfe = RFE(estimator=model, n_features_to_select=n_features_to_select, step=step)
+    rfe = RFE(estimator=model.copy(), n_features_to_select=n_features_to_select, step=step)
     rfe.fit(X, y)
     ranking_2 = pd.DataFrame([X.columns, rfe.ranking_]).T.sort_values(by=1)
     ranking_2[1] = ranking_2[1][ranking_2[1] > 1] * step + n_features_to_select
@@ -249,7 +249,7 @@ def rfe_features(X, y, model):
     # 第三轮
     n_features_to_select = 1
     step = 1
-    rfe = RFE(estimator=model, n_features_to_select=n_features_to_select, step=step)
+    rfe = RFE(estimator=model.copy(), n_features_to_select=n_features_to_select, step=step)
     rfe.fit(X, y)
     ranking_3 = pd.DataFrame([X.columns, rfe.ranking_]).T.sort_values(by=1)
 

@@ -206,9 +206,9 @@ def feature_ranking(X, y, model_names, models, random_state=0):
     ranking_dict = {}
     for model_name in model_names:
         try:
-            model = models[model_name](random_state=random_state)
+            model = models[model_name]
         except TypeError:
-            model = models[model_name]()
+            model = models[model_name]
         ranking_dict[model_name] = rfe_features(X, y, model)
 
     rank_df = pd.DataFrame()

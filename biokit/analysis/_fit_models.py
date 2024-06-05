@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
+from sklearn.base import clone
 from sklearn import ensemble
 from sklearn import linear_model
 from sklearn import naive_bayes
@@ -15,26 +16,46 @@ from sklearn.feature_selection import RFE
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import precision_score
-from sklearn.metrics import r2_score
 from sklearn.metrics import recall_score
+
+from sklearn.metrics import r2_score
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import root_mean_squared_error
+from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_absolute_percentage_error
+from sklearn.metrics import explained_variance_score
+
 from sklearn.model_selection import KFold
 from sklearn.model_selection import RepeatedKFold
 from sklearn.model_selection import train_test_split
 
 
-def performance_evaluation(X, y, model):
-    y_pred = model.predict(X)
-    r2 = r2_score(y, y_pred)
-    accuracy = accuracy_score(y, y_pred)
-    precision = precision_score(y, y_pred)
-    recall = recall_score(y, y_pred)
-    f1 = f1_score(y, y_pred)
-    return [r2, accuracy, precision, recall, f1]
+def performance_evaluation(X, y, model, performance_evaluation_mod='regression'):
+    if performance_evaluation_mod == 'classification':
+        y_pred = model.predict(X)
+        accuracy = accuracy_score(y, y_pred)
+        precision = precision_score(y, y_pred)
+        recall = recall_score(y, y_pred)
+        f1 = f1_score(y, y_pred)
+        return [accuracy, precision, recall, f1]
+    elif performance_evaluation_mod == 'regression':
+        y_pred = model.predict(X)
+        r2 = r2_score(y, y_pred)
+        mse = mean_squared_error(y, y_pred)
+        rmse = root_mean_squared_error(y, y_pred)
+        mae = mean_absolute_error(y, y_pred)
+        mape = mean_absolute_percentage_error(y, y_pred)
+        evs = explained_variance_score(y, y_pred)
+        return [r2, mse, rmse, mae, mape, evs]
 
 
-def fit_models(X, y, models: dict, n_splits=10, n_repeats=5, random_state=0) -> tuple:
+def fit_models(X, y, models: dict, n_splits=10, n_repeats=5, random_state=0, train_score_dict=None,
+               test_score_dict=None, performance_evaluation_mod='regression') -> tuple:
     """模型训练及测试
 
+    :param performance_evaluation_mod:
+    :param test_score_dict:
+    :param train_score_dict:
     :param X: 特征 m行 n列
     :param y: 目标值 m个元素
     :param models: 字典，键：模型名称 值：实例化的模型
@@ -58,23 +79,30 @@ def fit_models(X, y, models: dict, n_splits=10, n_repeats=5, random_state=0) -> 
     else:
         raise ValueError('unexpected n_splits value')
 
-    train_scores = {}
-    test_scores = {}
+    if train_score_dict is None:
+        train_score_dict = {}
+    if test_score_dict is None:
+        test_score_dict = {}
+
     for model_name in models:
         train_score = []
         test_score = []
         for train_X, test_X, train_y, test_y in iterator:
-            try:
-                models[model_name].fit(X=train_X, y=train_y)
-                train_score.append(performance_evaluation(train_X, train_y, models[model_name]))
-                test_score.append(performance_evaluation(test_X, test_y, models[model_name]))
-            except:
-                break
+            models[model_name].fit(X=train_X, y=train_y)
+            train_score.append(performance_evaluation(train_X, train_y, models[model_name]))
+            test_score.append(performance_evaluation(test_X, test_y, models[model_name]))
         if len(train_score) != 0 and len(test_score) != 0:
-            train_scores[model_name] = pd.DataFrame(train_score,
-                                                    columns=['R2', 'accuracy', 'precision', 'recall', 'f1'])
-            test_scores[model_name] = pd.DataFrame(test_score, columns=['R2', 'accuracy', 'precision', 'recall', 'f1'])
-    return train_scores, test_scores
+            if performance_evaluation_mod == 'classification':
+                train_score_dict[model_name] = pd.DataFrame(train_score,
+                                                            columns=['accuracy', 'precision', 'recall', 'f1'])
+                test_score_dict[model_name] = pd.DataFrame(test_score,
+                                                           columns=['accuracy', 'precision', 'recall', 'f1'])
+            elif performance_evaluation_mod == 'regression':
+                train_score_dict[model_name] = pd.DataFrame(train_score,
+                                                            columns=['r2', 'mse', 'rmse', 'mae', 'mape', 'evs'])
+                test_score_dict[model_name] = pd.DataFrame(test_score,
+                                                           columns=['r2', 'mse', 'rmse', 'mae', 'mape', 'evs'])
+    return train_score_dict, test_score_dict
 
 
 def sklearn_models():
@@ -231,25 +259,31 @@ def rfe_features(X, y, model):
     # 第一轮
     n_features_to_select = 10000
     step = 100
-    rfe = RFE(estimator=model.copy(), n_features_to_select=n_features_to_select, step=step)
-    rfe.fit(X, y)
-    ranking_1 = pd.DataFrame([X.columns, rfe.ranking_]).T.sort_values(by=1)
-    ranking_1[1] = ranking_1[1][ranking_1[1] > 1] * step + n_features_to_select
-    X = X.T[rfe.ranking_ == 1].T
+    if X.shape[1] > n_features_to_select:
+        rfe = RFE(estimator=clone(model), n_features_to_select=n_features_to_select, step=step)
+        rfe.fit(X, y)
+        ranking_1 = pd.DataFrame([X.columns, rfe.ranking_]).T.sort_values(by=1)
+        ranking_1[1] = ranking_1[1][ranking_1[1] > 1] * step + n_features_to_select
+        X = X.T[rfe.ranking_ == 1].T
+    else:
+        ranking_1 = pd.DataFrame(columns=[0, 1])
 
     # 第二轮
     n_features_to_select = 2000
     step = 20
-    rfe = RFE(estimator=model.copy(), n_features_to_select=n_features_to_select, step=step)
-    rfe.fit(X, y)
-    ranking_2 = pd.DataFrame([X.columns, rfe.ranking_]).T.sort_values(by=1)
-    ranking_2[1] = ranking_2[1][ranking_2[1] > 1] * step + n_features_to_select
-    X = X.T[rfe.ranking_ == 1].T
+    if X.shape[1] > n_features_to_select:
+        rfe = RFE(estimator=clone(model), n_features_to_select=n_features_to_select, step=step)
+        rfe.fit(X, y)
+        ranking_2 = pd.DataFrame([X.columns, rfe.ranking_]).T.sort_values(by=1)
+        ranking_2[1] = ranking_2[1][ranking_2[1] > 1] * step + n_features_to_select
+        X = X.T[rfe.ranking_ == 1].T
+    else:
+        ranking_2 = pd.DataFrame(columns=[0, 1])
 
     # 第三轮
     n_features_to_select = 1
     step = 1
-    rfe = RFE(estimator=model.copy(), n_features_to_select=n_features_to_select, step=step)
+    rfe = RFE(estimator=clone(model), n_features_to_select=n_features_to_select, step=step)
     rfe.fit(X, y)
     ranking_3 = pd.DataFrame([X.columns, rfe.ranking_]).T.sort_values(by=1)
 

@@ -31,7 +31,7 @@ def draw_neural_net_double(n_neuro_layers, featurenames=None, yname='y', x_inter
     arrowcolors = [''] + arrowcolors
     arrow_length = 0.6
     if featurenames is None:
-        featurenames = [f'feature{i + 1}' for i in range(n_neuro_layers[0])]
+        featurenames = [f'feature{i + 1}' for i in range(n_neuro_layers[0] * 2)]
     if ax is None:
         fig, ax = plt.subplots(figsize=(10, 10))
 
@@ -39,7 +39,7 @@ def draw_neural_net_double(n_neuro_layers, featurenames=None, yname='y', x_inter
     arrow_left = left + x_interval * 0.1
     n_neuro = n_neuro_layers[0]
     bottom = ycenter + 1.5
-    for gene in featurenames[:n_neuro]:  # 上半部分基因
+    for gene in featurenames[:n_neuro][::-1]:  # 上半部分基因
         y = bottom + 0.5
         ax.text(left, y, gene, ha='right', va='center')
         ax.arrow(arrow_left, y, arrow_length * x_interval, 0, linewidth=arrowwidth, head_width=0.3, head_length=0.3,
@@ -101,6 +101,7 @@ def draw_neural_net_double(n_neuro_layers, featurenames=None, yname='y', x_inter
     ax.axis('off')
     return ax
 
+
 def draw_neural_net_single(n_neuro_layers, featurenames=None, yname='y', x_interval=2, neurosize=300, colors=None,
                            arrowcolors=None, arrowwidth=0.3, ax=None):
     # 计算参数
@@ -120,7 +121,7 @@ def draw_neural_net_single(n_neuro_layers, featurenames=None, yname='y', x_inter
     arrow_left = left + x_interval * 0.1
     n_neuro = n_neuro_layers[0]
     bottom = ycenter - n_neuro / 2
-    for gene in featurenames[:n_neuro]:
+    for gene in featurenames[:n_neuro][::-1]:
         y = bottom + 0.5
         ax.text(left, y, gene, ha='right', va='center')
         ax.arrow(arrow_left, y, arrow_length * x_interval, 0, linewidth=arrowwidth, head_width=0.3, head_length=0.3,
@@ -164,4 +165,3 @@ def draw_neural_net_single(n_neuro_layers, featurenames=None, yname='y', x_inter
     ax.set_ylim(0, ymax)
     ax.axis('off')
     return ax
-

@@ -18,3 +18,5 @@ from ._timescape import timescape
 from ._variants_landscape import oncoplot
 from ._volcano_plot import volcano_plot
 from ._dot import metascape_dotplot
+from ._neuronetwork import draw_neural_net_double, draw_neural_net_single
+from ._fig import create_fig

@@ -89,8 +89,8 @@ def fit_models(X, y, models: dict, n_splits=10, n_repeats=5, random_state=0, tra
         test_score = []
         for train_X, test_X, train_y, test_y in iterator:
             models[model_name].fit(X=train_X, y=train_y)
-            train_score.append(performance_evaluation(train_X, train_y, models[model_name]))
-            test_score.append(performance_evaluation(test_X, test_y, models[model_name]))
+            train_score.append(performance_evaluation(train_X, train_y, models[model_name], performance_evaluation_mod))
+            test_score.append(performance_evaluation(test_X, test_y, models[model_name], performance_evaluation_mod))
         if len(train_score) != 0 and len(test_score) != 0:
             if performance_evaluation_mod == 'classification':
                 train_score_dict[model_name] = pd.DataFrame(train_score,

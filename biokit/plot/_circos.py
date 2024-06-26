@@ -260,8 +260,8 @@ class Circos(object):
         df['end'] = [start + chr_ring_start_dict[chrom] for chrom, start in df[['chr', 'end']].to_numpy()]
         return df
 
-    def plot_base(self, colors=None, alpha=1, y=None, fontproperties=None, plot_chrom=True, text_chrom=True,
-                  plot_band=True, fontsize_scale=False):
+    def plot_base(self, color_dict=None, alpha=1, y=None, fontproperties=None, plot_chrom=True, text_chrom=True,
+                  chrname_extend=0, plot_band=True, fontsize_scale=False, ):
         ax = self.ax
         rings = self.rings
         bottom = self.bottom
@@ -270,11 +270,12 @@ class Circos(object):
         background = self.background
         chr_df = background
 
-        if not colors:
-            colors = ['grey'] * background.shape[0]
+        if not color_dict:
+            color_dict = dict(zip(chr_df['chr'], ['grey'] * chr_df.shape[0]))
 
         if plot_chrom:
-            ax.barh(y=y, height=0.8, left=chr_df['chr_ring_start'], width=chr_df['length'], color=colors,
+            ax.barh(y=y, height=0.8, left=chr_df['chr_ring_start'], width=chr_df['length'],
+                    color=map(color_dict, chr_df['chr']),
                     edgecolor='grey', alpha=alpha)
 
         if not fontproperties:
@@ -284,7 +285,7 @@ class Circos(object):
         # 染色体名
         if text_chrom:
             for chrom, start, length in chr_df[['chr', 'chr_ring_start', 'length']].to_numpy():
-                ax.text(x=start + length / 2, y=y + 2, s=chrom, va='center', ha='center',
+                ax.text(x=start + length / 2, y=y + 2 + chrname_extend, s=chrom, va='center', ha='center',
                         rotation=360 * (start + length / 2) / (2 * pi) - 90 + fontproperties.get('rotation', 0),
                         fontsize=fontsize * np.log(1 + length) / np.log(1.45) if fontsize_scale else fontsize,
                         fontweight=fontweight)
@@ -356,14 +357,14 @@ class Circos(object):
         self.draw()
         plt.show()
 
-    def barhplot(self, data, value, height, y, color_dict):
+    def barhplot(self, data, value, height, y, color_dict, **kwargs):
         ax = self.ax
         for color in color_dict:
             temp_data = data[data[value] == color]
             ax.barh(y=y, left=temp_data['start'], width=temp_data['length'], height=height,
                     color=color_dict[color])
 
-    def bezierplot(self, data, value, y, linewidth, linepoint, color_dict, alpha):
+    def bezierplot(self, data, value, y, linewidth, linepoint, color_dict, alpha, **kwargs):
         """
 
         :param alpha:
@@ -398,7 +399,7 @@ class Circos(object):
             curve = Circos.coordinates_transformation(curve, to='polar')
             ax.plot(curve[:, 0], curve[:, 1], color=color, linewidth=linewidth, alpha=alpha)
 
-    def bezierareaplot(self, data, value, y, linewidth, linepoints, color_dict, alpha):
+    def bezierareaplot(self, data, value, y, linewidth, linepoints, color_dict, alpha, **kwargs):
         ax = self.ax
         for start1, end1, start2, end2, color in data[['start1', 'end1', 'start2', 'end2', value]].to_numpy():
             color = color_dict[color]
@@ -407,9 +408,9 @@ class Circos(object):
             p3 = np.array([start2, y])
             p4 = np.array([end2, y])
             area = Circos.bezier_area(p2, p3, p4, p1, n=linepoints)
-            ax.fill(area[:, 0], area[:, 1], color=color, alpha=alpha, linewidth=linewidth, )
+            ax.fill(area[:, 0], area[:, 1], color=color, alpha=alpha, linewidth=linewidth, **kwargs)
 
-    def textanno(self, data, value, y, fontsize, rotation, min_interval=0.01):
+    def textanno(self, data, value, y, fontsize, rotation, min_interval=0.01, **kwargs):
         """标注文字"""
         ax = self.ax
         data = data.copy()
@@ -431,14 +432,14 @@ class Circos(object):
                     fontsize=fontsize, ha='center', va='center')
         self.foldline(y=y, adjust_xs=adjust_xs, true_xs=data['center'])
 
-    def foldline(self, y, adjust_xs, true_xs, height=2):
+    def foldline(self, y, adjust_xs, true_xs, height=2, **kwargs):
         # 文字注释占2-3个环的宽度，外层环显示调整过坐标的文字以避免互相覆盖，内层环通过折线连接到文字的实际坐标
         ax = self.ax
         for adjust_x, true_x in zip(adjust_xs, true_xs):
             ax.plot([true_x, true_x, adjust_x, adjust_x], [y, y + 0.15 * height, y + 0.85 * height, y + height],
                     c='black')
 
-    def lineplot(self, data, value_col, y, linewidth, smooth, n_smooth, color_dict, ylim=4):
+    def lineplot(self, data, value_col, y, linewidth, smooth, n_smooth, color_dict, ylim=4, **kwargs):
         data['x'] = data[['start', 'end']].mean(1)
         data.sort_values(by='x', ascending=True, inplace=True)
         # 两个区间的中点可能相同导致报错
@@ -479,7 +480,7 @@ class Circos(object):
         ax = self.ax
         ax.plot(smooth_x, smooth_y, linewidth=linewidth, color=color_dict)
 
-    def scatter(self, data, value_col, y, height, size, style, color_dict, ylim=3):
+    def scatter(self, data, value_col, y, height, size, style, color_dict, ylim=3, **kwargs):
         ax = self.ax
         if height == 0:
             data['y'] = y
@@ -497,7 +498,7 @@ class Circos(object):
             ax.text(x=x, y=y, s=text, ha='center', va='center', rotation=self.circos_rotation(x),
                     fontsize=fontsize)
 
-    def barplot(self, data, value_cols, y, width=0.8, vmax=None, hue_color=None, hue_label=None):
+    def barplot(self, data, value_cols, y, width=0.8, vmax=None, hue_color=None, hue_label=None, **kwargs):
         data = data.copy()
         if not vmax:
             vmax = data[value_cols].max().max() * 1.25

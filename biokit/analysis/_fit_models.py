@@ -20,7 +20,6 @@ from sklearn.metrics import recall_score
 
 from sklearn.metrics import r2_score
 from sklearn.metrics import mean_squared_error
-from sklearn.metrics import root_mean_squared_error
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import mean_absolute_percentage_error
 from sklearn.metrics import explained_variance_score
@@ -42,11 +41,10 @@ def performance_evaluation(X, y, model, performance_evaluation_mod='regression')
         y_pred = model.predict(X)
         r2 = r2_score(y, y_pred)
         mse = mean_squared_error(y, y_pred)
-        rmse = root_mean_squared_error(y, y_pred)
         mae = mean_absolute_error(y, y_pred)
         mape = mean_absolute_percentage_error(y, y_pred)
         evs = explained_variance_score(y, y_pred)
-        return [r2, mse, rmse, mae, mape, evs]
+        return [r2, mse, mae, mape, evs]
 
 
 def fit_models(X, y, models: dict, n_splits=10, n_repeats=5, random_state=0, train_score_dict=None,
@@ -99,9 +97,9 @@ def fit_models(X, y, models: dict, n_splits=10, n_repeats=5, random_state=0, tra
                                                            columns=['accuracy', 'precision', 'recall', 'f1'])
             elif performance_evaluation_mod == 'regression':
                 train_score_dict[model_name] = pd.DataFrame(train_score,
-                                                            columns=['r2', 'mse', 'rmse', 'mae', 'mape', 'evs'])
+                                                            columns=['r2', 'mse', 'mae', 'mape', 'evs'])
                 test_score_dict[model_name] = pd.DataFrame(test_score,
-                                                           columns=['r2', 'mse', 'rmse', 'mae', 'mape', 'evs'])
+                                                           columns=['r2', 'mse', 'mae', 'mape', 'evs'])
     return train_score_dict, test_score_dict
 
 

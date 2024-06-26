@@ -1,6 +1,22 @@
 CHANGES
 =======
 
+* 修改: feature\_ranking的在将model传入rfe时使用copy避免对原对象产生影响
+* 修改: feature\_ranking的models直接传入模型而不是模型的类
+* 修改：优化get\_gsm\_sampleinfo, 自动拆分characteristics
+* 新增：获取kegg通路中的基因
+* 修改：circos.plot\_base提取fontproperties['rotation']用于旋转文本
+* Change
+* Change
+* 修改：新增参数legend\_bbox\_to\_anchor用于控制图例位置 修改：AUC值注释合并到图例中
+* Change
+* 新增：下载KEGG通路基因的命令模板
+* 修改：修改脚本的编码，避免中文乱码 新增：爬取完成后复查补漏
+* Change
+* Change
+* 新增：基于docker的msbio(metascape镜像)执行通路富集
+* 修改：testbox新增interval参数用于控制box间隔 修改：testbox新增hide\_flier参数用于隐藏fliers
+* Change
 * Change
 * 新增: 基于metascape docker镜像执行本地metascape分析
 * 新增: GEO数据下载和样本信息爬取

@@ -1,0 +1,24 @@
+Looking in indexes: https://pypi.tuna.tsinghua.edu.cn/simple
+Collecting FuzzyTM
+  Downloading https://pypi.tuna.tsinghua.edu.cn/packages/2d/30/074bac7a25866a2807c1005c7852c0139ac22ba837871fc01f16df29b9dc/FuzzyTM-2.0.9-py3-none-any.whl (31 kB)
+Requirement already satisfied: numpy in c:\programdata\anaconda3\lib\site-packages (from FuzzyTM) (1.26.4)
+Requirement already satisfied: pandas in c:\programdata\anaconda3\lib\site-packages (from FuzzyTM) (2.1.4)
+Requirement already satisfied: scipy in c:\programdata\anaconda3\lib\site-packages (from FuzzyTM) (1.13.1)
+Collecting pyfume (from FuzzyTM)
+  Downloading https://pypi.tuna.tsinghua.edu.cn/packages/ed/ea/a3b120e251145dcdb10777f2bc5f18b1496fd999d705a178c1b0ad947ce1/pyFUME-0.3.4-py3-none-any.whl (60 kB)
+     ---------------------------------------- 60.3/60.3 kB 1.6 MB/s eta 0:00:00
+Requirement already satisfied: python-dateutil>=2.8.2 in c:\programdata\anaconda3\lib\site-packages (from pandas->FuzzyTM) (2.8.2)
+Requirement already satisfied: pytz>=2020.1 in c:\programdata\anaconda3\lib\site-packages (from pandas->FuzzyTM) (2023.3.post1)
+Requirement already satisfied: tzdata>=2022.1 in c:\programdata\anaconda3\lib\site-packages (from pandas->FuzzyTM) (2023.3)
+Collecting scipy (from FuzzyTM)
+  Downloading https://pypi.tuna.tsinghua.edu.cn/packages/65/76/903324159e4a3566e518c558aeb21571d642f781d842d8dd0fd9c6b0645a/scipy-1.10.1-cp311-cp311-win_amd64.whl (42.2 MB)
+     --------------------------------------- 42.2/42.2 MB 40.9 MB/s eta 0:00:00
+Collecting numpy (from FuzzyTM)
+  Downloading https://pypi.tuna.tsinghua.edu.cn/packages/d8/ec/ebef2f7d7c28503f958f0f8b992e7ce606fb74f9e891199329d5f5f87404/numpy-1.24.4-cp311-cp311-win_amd64.whl (14.8 MB)
+     --------------------------------------- 14.8/14.8 MB 46.7 MB/s eta 0:00:00
+Collecting simpful==2.12.0 (from pyfume->FuzzyTM)
+  Downloading https://pypi.tuna.tsinghua.edu.cn/packages/9d/0e/aebc2fb0b0f481994179b2ee2b8e6bbf0894d971594688c018375e7076ea/simpful-2.12.0-py3-none-any.whl (24 kB)
+Collecting fst-pso==1.8.1 (from pyfume->FuzzyTM)
+  Downloading https://pypi.tuna.tsinghua.edu.cn/packages/5a/d7/f7f93c41fde5b8c1f9d52cc0f9a104a56eca13dc6876c6d2f967ddef88d7/fst-pso-1.8.1.tar.gz (18 kB)
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'error'

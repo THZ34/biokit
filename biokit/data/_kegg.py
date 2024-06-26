@@ -7,10 +7,12 @@ import json
 import requests
 
 datapath = os.path.join(os.path.dirname(__file__), 'kegg')
+
+
 def download_kegg_pathway(hsaid, datapath=datapath):
     """Download KEGG pathway data by hsa id"""
     if not os.path.exists(os.path.join(datapath, f'{hsaid}.json')):
-        os.makedirs(datapath,exist_ok=True)
+        os.makedirs(datapath, exist_ok=True)
         url = f'http://togows.dbcls.jp/entry/pathway/{hsaid}/genes.json'
         r = requests.get(url)
         with open(os.path.join(datapath, f'{hsaid}.json'), 'w') as f:

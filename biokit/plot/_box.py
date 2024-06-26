@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from scipy.stats import ttest_ind
+import seaborn as sns
 
 
 def p2text_func(p, cutoff):
@@ -71,10 +72,16 @@ def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_i
     interval_width = box_width * interval / width
     position_start = x - (width + interval) / 2 + box_width / 2
     positions = [position_start + i * box_width + i * interval_width for i in range(n_groups)]
-    fig_objects = ax.boxplot([data[data[groupby] == group][y] for group in groups], positions=positions,
-                             widths=box_width, patch_artist=True, sym=sym)
-    for patch, color in zip(fig_objects['boxes'], colors):
-        patch.set_facecolor(color)
+    if kind == 'box':
+        fig_objects = ax.boxplot([data[data[groupby] == group][y] for group in groups], positions=positions,
+                                 widths=box_width, patch_artist=True, sym=sym, **kwargs)
+        for patch, color in zip(fig_objects['boxes'], colors):
+            patch.set_facecolor(color)
+    elif kind == 'violin':
+        for group, position in zip(groups, positions):
+            temp_data = data[data[groupby] == group]
+            temp_data['x'] = position
+            sns.violinplot(data=temp_data, x=position, y=y, ax=ax, color=colors[groups.index(group)], **kwargs)
 
     ymax = ax.get_ylim()[1]
     ptext_y_bottom = ymax + ptext_y_interval

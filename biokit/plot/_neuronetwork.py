@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 def draw_neural_net_double(n_neuro_layers, featurenames=None, yname='y', x_interval=2, neurosize=300, colors=None,
                            arrowcolors=None, arrowwidth=0.3, ax=None):
     """
-    »æÖÆÉñ¾­ÍøÂçÍ¼
+    ç»˜åˆ¶ç¥ç»ç½‘ç»œå›¾
     :param n_neuro_layers:
     :param featurenames:
     :param yname:
@@ -20,7 +20,7 @@ def draw_neural_net_double(n_neuro_layers, featurenames=None, yname='y', x_inter
     :param ax:
     :return:
     """
-    # ¼ÆËã²ÎÊı
+    # è®¡ç®—å‚æ•°
     ymax = max(n_neuro_layers) * 2 + 3
     left = 0
     ycenter = ymax / 2
@@ -35,51 +35,51 @@ def draw_neural_net_double(n_neuro_layers, featurenames=None, yname='y', x_inter
     if ax is None:
         fig, ax = plt.subplots(figsize=(10, 10))
 
-    # ÌØÕ÷²ã È¡n¸öÌØÕ÷
+    # ç‰¹å¾å±‚ å–nä¸ªç‰¹å¾
     arrow_left = left + x_interval * 0.1
     n_neuro = n_neuro_layers[0]
     bottom = ycenter + 1.5
-    for gene in featurenames[:n_neuro][::-1]:  # ÉÏ°ë²¿·Ö»ùÒò
+    for gene in featurenames[:n_neuro][::-1]:  # ä¸ŠåŠéƒ¨åˆ†åŸºå› 
         y = bottom + 0.5
         ax.text(left, y, gene, ha='right', va='center')
         ax.arrow(arrow_left, y, arrow_length * x_interval, 0, linewidth=arrowwidth, head_width=0.3, head_length=0.3,
                  fc='black', ec='black', length_includes_head=True)
         bottom += 1
     top = ycenter - 1.5
-    for gene in featurenames[-n_neuro:]:  # ÏÂ°ë²¿·Ö»ùÒò
+    for gene in featurenames[-n_neuro:]:  # ä¸‹åŠéƒ¨åˆ†åŸºå› 
         y = top - 0.5
         ax.text(left, y, gene, ha='right', va='center')
         ax.arrow(arrow_left, y, arrow_length * x_interval, 0, linewidth=arrowwidth, head_width=0.3, head_length=0.3,
                  fc='black', ec='black', length_includes_head=True)
         top -= 1
-    for i in [ycenter - 1, ycenter, ycenter + 1]:  # Ê¡ÂÔºÅ
+    for i in [ycenter - 1, ycenter, ycenter + 1]:  # çœç•¥å·
         ax.scatter(left - 0.5, i, s=neurosize / 20, c='black', edgecolors='black', zorder=2)
 
-    # Éñ¾­ÍøÂç
+    # ç¥ç»ç½‘ç»œ
     previous_y_list = []
     for n_neuro, color, arrowcolor in zip(n_neuro_layers, colors, arrowcolors):
         left += x_interval
         bottom = ycenter + 1.5
         y_list = []
-        for i in range(n_neuro):  # ÉÏ°ë²¿·ÖÉñ¾­Ôª
+        for i in range(n_neuro):  # ä¸ŠåŠéƒ¨åˆ†ç¥ç»å…ƒ
             ax.scatter(left, bottom + 0.5, s=neurosize, c=color, edgecolors='black', zorder=2)
             y_list.append(bottom + 0.5)
             bottom += 1
         top = ycenter - 1.5
-        for i in range(n_neuro):  # ÏÂ°ë²¿·ÖÉñ¾­Ôª
+        for i in range(n_neuro):  # ä¸‹åŠéƒ¨åˆ†ç¥ç»å…ƒ
             ax.scatter(left, top - 0.5, s=neurosize, c=color, edgecolors='black', zorder=2)
             y_list.append(top - 0.5)
             top -= 1
-        for y in y_list:  # Á¬½ÓÉÏÒ»²ãµÄ¼ıÍ·
+        for y in y_list:  # è¿æ¥ä¸Šä¸€å±‚çš„ç®­å¤´
             for previous_y in previous_y_list:
                 ax.arrow(left - x_interval, previous_y, x_interval, y - previous_y, linewidth=arrowwidth,
                          head_width=0.1,
                          head_length=0, fc=arrowcolor, ec=arrowcolor, length_includes_head=True)
-        for i in [ycenter - 1, ycenter, ycenter + 1]:  # Ê¡ÂÔºÅ
+        for i in [ycenter - 1, ycenter, ycenter + 1]:  # çœç•¥å·
             ax.scatter(left, i, s=neurosize / 20, c='black', edgecolors='black', zorder=2)
         previous_y_list = y_list
 
-    # Êä³ö²ã
+    # è¾“å‡ºå±‚
     left += x_interval
     y = ycenter
     color = colors[len(n_neuro_layers)]
@@ -89,7 +89,7 @@ def draw_neural_net_double(n_neuro_layers, featurenames=None, yname='y', x_inter
         ax.arrow(left - x_interval, previous_y, x_interval, y - previous_y, linewidth=arrowwidth, head_width=0.1,
                  head_length=0, fc=arrowcolor, ec=arrowcolor, length_includes_head=True)
 
-    # Êä³ö²ã±êÇ©
+    # è¾“å‡ºå±‚æ ‡ç­¾
     left += x_interval
     arrow_left = left + x_interval * 0.1
     ax.text(left, y, yname, ha='left', va='center')
@@ -104,7 +104,7 @@ def draw_neural_net_double(n_neuro_layers, featurenames=None, yname='y', x_inter
 
 def draw_neural_net_single(n_neuro_layers, featurenames=None, yname='y', x_interval=2, neurosize=300, colors=None,
                            arrowcolors=None, arrowwidth=0.3, ax=None):
-    # ¼ÆËã²ÎÊı
+    # è®¡ç®—å‚æ•°
     ymax = max(n_neuro_layers)
     left = 0
     ycenter = ymax / 2
@@ -117,7 +117,7 @@ def draw_neural_net_single(n_neuro_layers, featurenames=None, yname='y', x_inter
     if featurenames is None:
         featurenames = [f'feature{i + 1}' for i in range(n_neuro_layers[0])]
 
-    # ÌØÕ÷²ã È¡n¸öÌØÕ÷
+    # ç‰¹å¾å±‚ å–nä¸ªç‰¹å¾
     arrow_left = left + x_interval * 0.1
     n_neuro = n_neuro_layers[0]
     bottom = ycenter - n_neuro / 2
@@ -127,24 +127,24 @@ def draw_neural_net_single(n_neuro_layers, featurenames=None, yname='y', x_inter
         ax.arrow(arrow_left, y, arrow_length * x_interval, 0, linewidth=arrowwidth, head_width=0.3, head_length=0.3,
                  fc='black', ec='black', length_includes_head=True)
         bottom += 1
-    # Éñ¾­ÍøÂç
+    # ç¥ç»ç½‘ç»œ
     previous_y_list = []
     for n_neuro, color, arrowcolor in zip(n_neuro_layers, colors, arrowcolors):
         left += x_interval
         bottom = ycenter - n_neuro / 2
         y_list = []
-        for i in range(n_neuro):  # ÉÏ°ë²¿·ÖÉñ¾­Ôª
+        for i in range(n_neuro):  # ä¸ŠåŠéƒ¨åˆ†ç¥ç»å…ƒ
             plt.scatter(left, bottom + 0.5, s=neurosize, c=color, edgecolors='black', zorder=2)
             y_list.append(bottom + 0.5)
             bottom += 1
-        for y in y_list:  # Á¬½ÓÉÏÒ»²ãµÄ¼ıÍ·
+        for y in y_list:  # è¿æ¥ä¸Šä¸€å±‚çš„ç®­å¤´
             for previous_y in previous_y_list:
                 plt.arrow(left - x_interval, previous_y, x_interval, y - previous_y, linewidth=arrowwidth,
                           head_width=0.1,
                           head_length=0, fc=arrowcolor, ec=arrowcolor, length_includes_head=True)
         previous_y_list = y_list
 
-    # Êä³ö²ã
+    # è¾“å‡ºå±‚
     left += x_interval
     y = ycenter
     color = colors[len(n_neuro_layers)]
@@ -154,7 +154,7 @@ def draw_neural_net_single(n_neuro_layers, featurenames=None, yname='y', x_inter
         plt.arrow(left - x_interval, previous_y, x_interval, y - previous_y, linewidth=arrowwidth, head_width=0.1,
                   head_length=0, fc=arrowcolor, ec=arrowcolor, length_includes_head=True)
 
-    # Êä³ö²ã±êÇ©
+    # è¾“å‡ºå±‚æ ‡ç­¾
     left += x_interval
     arrow_left = left + x_interval * 0.1
     ax.text(left, y, yname, ha='left', va='center')

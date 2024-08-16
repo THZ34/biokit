@@ -82,8 +82,11 @@ def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_i
             temp_data = data[data[groupby] == group]
             temp_data['x'] = position
             sns.violinplot(data=temp_data, x=position, y=y, ax=ax, color=colors[groups.index(group)], **kwargs)
+    elif kind == 'hist':
+        for group, position in zip(groups, positions):
+            temp_data = data[data[groupby] == group]
+            sns.histplot(data=temp_data, x=y, ax=ax, color=colors[groups.index(group)], **kwargs)
 
-    ymax = ax.get_ylim()[1]
     ptext_y_bottom = ymax + ptext_y_interval
     n_text = 0
     for interval in range(1, n_groups):
@@ -92,7 +95,7 @@ def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_i
             group2 = groups[i + interval]
             x1 = positions[i]
             x2 = positions[i + interval]
-            pvalue = testfunc(data[data[groupby] == group1][y], data[data[groupby] == group2][y]).pvalue
+            pvalue = testfunc(data[data[groupby] == group1][y].to_list(), data[data[groupby] == group2][y].to_list()).pvalue
             if p2text:
                 ptext = p2text_func(pvalue, cutoff)
                 color = cutoff_color[ptext]

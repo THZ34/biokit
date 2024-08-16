@@ -140,6 +140,7 @@ class Circos(object):
             layer['data'] = data
             layer['linewidth'] = size or 5
             layer['linepoints'] = linepoints or 50
+            layer['kwargs'] = kwargs
 
         elif kind == 'text':
             layer['data'] = self.coordinating(data)
@@ -275,7 +276,7 @@ class Circos(object):
 
         if plot_chrom:
             ax.barh(y=y, height=0.8, left=chr_df['chr_ring_start'], width=chr_df['length'],
-                    color=map(color_dict, chr_df['chr']),
+                    color=[color_dict[chrom] for chrom in chr_df['chr']],
                     edgecolor='grey', alpha=alpha)
 
         if not fontproperties:
@@ -285,10 +286,11 @@ class Circos(object):
         # 染色体名
         if text_chrom:
             for chrom, start, length in chr_df[['chr', 'chr_ring_start', 'length']].to_numpy():
-                ax.text(x=start + length / 2, y=y + 2 + chrname_extend, s=chrom, va='center', ha='center',
+                ax.text(x=start + length / 2, y=y + 2 + chrname_extend, s=chrom, va='center',
+                        ha=fontproperties.get('ha', 'center'),
                         rotation=360 * (start + length / 2) / (2 * pi) - 90 + fontproperties.get('rotation', 0),
                         fontsize=fontsize * np.log(1 + length) / np.log(1.45) if fontsize_scale else fontsize,
-                        fontweight=fontweight)
+                        fontweight=fontweight, rotation_mode='anchor')
         # 染色体条带
         if plot_band:
             for layer in self.background_ring:
@@ -325,6 +327,7 @@ class Circos(object):
         rotation = layer.get('rotation', 0)
         smooth = layer.get('smooth', False)
         n_smooth = layer.get('n_smooth', 100)
+        kwargs = layer.get('kwargs', {})
 
         if kind == 'barh':
             self.barhplot(data, value_col, height, y, color_dict)
@@ -337,7 +340,7 @@ class Circos(object):
         elif kind == 'bezier':
             self.bezierplot(data, value_col, y, linewidth, linepoints, color_dict, alpha)
         elif kind == 'bezierarea':
-            self.bezierareaplot(data, value_col, y, linewidth, linepoints, color_dict, alpha)
+            self.bezierareaplot(data, value_col, y, linewidth, linepoints, color_dict, alpha, **kwargs)
         elif kind == 'text':
             self.textanno(data, value_col, y, fontsize, rotation)
         elif kind == 'scatter':
@@ -408,7 +411,7 @@ class Circos(object):
             p3 = np.array([start2, y])
             p4 = np.array([end2, y])
             area = Circos.bezier_area(p2, p3, p4, p1, n=linepoints)
-            ax.fill(area[:, 0], area[:, 1], color=color, alpha=alpha, linewidth=linewidth, **kwargs)
+            ax.fill(area[:, 0], area[:, 1], color=color, alpha=alpha, linewidth=linewidth, edgecolor='white', )
 
     def textanno(self, data, value, y, fontsize, rotation, min_interval=0.01, **kwargs):
         """标注文字"""
@@ -582,6 +585,7 @@ class Circos(object):
         :param to: 'angle' 或 'polar' ， 直角坐标或极坐标
         :return: np.array 转换后的坐标
         """
+        points = np.array(points)
         new_coordinates = []
         if to == 'polar':
             for point in points:
@@ -630,3 +634,101 @@ class Circos(object):
         interval2 = Circos.fill_endpoints(p2, p3)
         area = np.concatenate([interval1, bezier1, interval2, bezier2], axis=0)
         return area
+
+
+# %%
+def pathway_circos(pathway_gene_dict, color_dict=None, pathway_gene_ratio=(1, 1), connect_from='pathway', cmap=None,
+                   gene_order=None, pathway_order=None, alpha=1):
+    """
+    Pathway Circos
+    :param cmap:
+    :param pathway_gene_dict:
+    :param color_dict:
+    :param pathway_gene_ratio:
+    :param connect_from:
+    :return:
+    """
+    pathway_names = list(pathway_gene_dict.keys())
+    all_genes = sum(list(pathway_gene_dict.values()), [])
+
+    pathway_size = pd.Series({k: len(v) for k, v in pathway_gene_dict.items()})
+    pathway_size.sort_values(inplace=True, ascending=False)
+    pathway_df = pd.DataFrame()
+    pathway_df['end'] = pathway_size
+    pathway_df['chr'] = pathway_size.index
+    pathway_df['start'] = 0
+
+    gene_counts = pd.value_counts(all_genes)
+    gene_df = pd.DataFrame()
+    gene_df['end'] = gene_counts
+    gene_df['chr'] = gene_counts.index
+    gene_df['start'] = 0
+    gene_df[['start', 'end']] = gene_df[['start', 'end']] * pathway_gene_ratio[1] / pathway_gene_ratio[0]
+
+    if not cmap:
+        cmap = 'rainbow'
+    if not color_dict:
+        color_dict = dict(zip(pathway_names, sns.color_palette(cmap, len(pathway_names)))).update(
+            dict(zip(all_genes, sns.color_palette(cmap, len(all_genes)))))
+
+    if gene_order:
+        gene_df = gene_df.loc[gene_order]
+    if pathway_order:
+        pathway_df = pathway_df.loc[pathway_order]
+
+    base_df = pd.concat([pathway_df, gene_df], axis=0)
+    bezier_df = []
+    gene_start_dict = dict.fromkeys(gene_counts.index, 0)
+    for pathway, genes in pathway_gene_dict.items():
+        pathway_start = 0
+        for gene in gene_counts.index:
+            gene_start = gene_start_dict[gene]
+            if gene in genes:
+                bezier_df.append([pathway, pathway_start, pathway_start + 1, gene, gene_start, gene_start + 1])
+                pathway_start += 1
+                gene_start_dict[gene] += 1
+    bezier_df = pd.DataFrame(bezier_df,
+                             columns=['pathway', 'pathway_start', 'pathway_end', 'gene', 'gene_start', 'gene_end'])
+    if connect_from == 'pathway':
+        bezier_df.rename(dict(zip(['pathway', 'pathway_start', 'pathway_end', 'gene', 'gene_start', 'gene_end'],
+                                  ['chr1', 'start1', 'end1', 'chr2', 'start2', 'end2'])), axis=1, inplace=True)
+
+    elif connect_from == 'gene':
+        bezier_df.rename(dict(zip(['pathway', 'pathway_start', 'pathway_end', 'gene', 'gene_start', 'gene_end'],
+                                  ['chr2', 'start2', 'end2', 'chr1', 'start1', 'end1'])), axis=1, inplace=True)
+
+    bezier_df['value'] = bezier_df['chr1']
+
+    # 画图
+    circos = Circos(bottom=20)
+    circos.set_base(base_df, keep_space=0)
+    ring = circos.add_ring()
+    circos.add_layer(data=bezier_df, kind='bezierarea', value_col='value', ring=ring, alpha=alpha, linepoints=200,
+                     color_dict=color_dict, size=0.5)
+    circos.plot_base(fontproperties={'fontsize': 10, 'ha': 'left', 'rotation': 180}, text_chrom=True,
+                     color_dict=color_dict)
+    circos.ax.set_theta_offset(np.pi / 2)
+    circos.draw()
+
+    ax = circos.ax
+    texts = ax.texts
+    # pathway统一转移到图左侧,保持高度不变,向右对齐,通过annotation线连接到原本的坐标点
+    for text in texts:
+        if text.get_text() in pathway_df.index:
+            theta, radius = text.get_position()
+            x, y = circos.coordinates_transformation([[theta - np.pi / 2, radius]], to='angle')[0]
+            new_x = 26
+            new_theta, new_radius = circos.coordinates_transformation([[new_x, y]], to='polar')[0]
+            new_theta = new_theta + np.pi / 2
+            # text.set_position([new_radius, new_theta])
+            # text.set_rotation(0)
+            # text.set_ha('right')
+            print(text.get_text())
+            print(x, y)
+            ax.annotate(text.get_text(), xy=(theta, 22), xytext=(new_theta, new_radius),
+                        # ax.annotate(text.get_text(), xy=(new_x, y), xytext=(new_theta, new_radius),
+                        arrowprops=dict(arrowstyle='-', color='grey'), fontsize=12, fontweight='bold', ha='right',
+                        va='center')
+            text.set_text('')
+    ax.set_ylim(0, 27)
+    return circos

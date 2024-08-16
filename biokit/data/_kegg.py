@@ -17,10 +17,8 @@ def download_kegg_pathway(hsaid, datapath=datapath):
         r = requests.get(url)
         with open(os.path.join(datapath, f'{hsaid}.json'), 'w') as f:
             f.write(r.text)
-        pathway_gene_dict = json.loads(r.text)
+
+    with open(os.path.join(datapath, f'{hsaid}.json')) as f:
+        pathway_gene_dict = json.load(f)
         pathway_gene_dict = {k: v.split(';')[0] for k, v in pathway_gene_dict[0].items() if v}
-    else:
-        with open(os.path.join(datapath, f'{hsaid}.json')) as f:
-            pathway_gene_dict = json.load(f)
-            pathway_gene_dict = {k: v.split(';')[0] for k, v in pathway_gene_dict[0].items() if v}
     return pathway_gene_dict

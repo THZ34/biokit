@@ -13,8 +13,8 @@ from numpy import unique
 
 
 def gsea_pathwayplot(df, column='Adjusted P-value', title='', color='-log10 Padj', cutoff=0.05, top_term=10,
-            sizes=None, norm=None, legend=True, figsize=(6, 5.5),
-            cmap='RdBu_r', ofname=None, **kwargs):
+                     sizes=None, norm=None, legend=True, figsize=(6, 5.5),
+                     cmap='RdBu_r', ofname=None, **kwargs):
     """Visualize enrichr results.
 
     :param df: GSEApy DataFrame results.
@@ -134,7 +134,6 @@ def gsea_pathwayplot(df, column='Adjusted P-value', title='', color='-log10 Padj
         fig.savefig(ofname, bbox_inches='tight', dpi=300)
         return
     return ax
-
 
 
 def kobas_dotplot(df, column='Adjusted P-value', title='', color='-log10 Padj', cutoff=0.05, top_term=10,
@@ -260,13 +259,13 @@ def kobas_dotplot(df, column='Adjusted P-value', title='', color='-log10 Padj', 
     return ax
 
 
-def metascape_dotplot(df, column='Adjusted P-value', title='', color='-log10 Padj', cutoff=0.05, top_term=10,
+def metascape_dotplot(df, y='Adjusted P-value', title='', color='-log10 Padj', cutoff=0.05, top_term=10,
                       sizes=None, norm=None, legend=True, figsize=(6, 5.5),
                       cmap='RdBu_r', ofname=None, **kwargs):
     """Visualize enrichr results.
 
     :param df: GSEApy DataFrame results.
-    :param column: which column of DataFrame to show. Default: Adjusted P-value
+    :param y: which column of DataFrame to show. Default: Adjusted P-value
     :param title: figure title
     :param cutoff: p-adjust cut-off.
     :param top_term: number of enriched terms to show.
@@ -280,15 +279,8 @@ def metascape_dotplot(df, column='Adjusted P-value', title='', color='-log10 Pad
 
     """
 
-    colname = column
+    colname = y
     # sorting the dataframe for better visualization
-    if colname in ['Correct P-value', 'P-value']:
-        df = df[df[colname] <= cutoff]
-        if len(df) < 1:
-            msg = "Warning: No enrich terms when cutoff = %s" % cutoff
-            return msg
-        df = df.assign(logAP=lambda x: - x[colname].apply(np.log10))
-        colname = 'logAP'
     df = df.sort_values(by=colname).iloc[-top_term:, :]
     #
     temp = df[['Input number', 'Background number']]
@@ -299,7 +291,7 @@ def metascape_dotplot(df, column='Adjusted P-value', title='', color='-log10 Pad
     combined_score = df.loc[:, color].values
     # y axis index and values
     y = [i for i in range(0, len(df))]
-    ylabels = df['Term'].values
+    ylabels = df['Description'].values
 
     levels = numbers = np.sort(df.Hits.unique())
     if norm is None:
@@ -331,10 +323,10 @@ def metascape_dotplot(df, column='Adjusted P-value', title='', color='-log10 Pad
     sc = ax.scatter(x=x, y=y, s=area, edgecolors='face', c=combined_score,
                     cmap=cmap, vmin=vmin, vmax=vmax)
 
-    if column in ['Adjusted P-value', 'P-value']:
-        xlabel = "-log$_{10}$(%s)" % column
+    if y in ['Adjusted P-value', 'P-value']:
+        xlabel = "-log$_{10}$(%s)" % y
     else:
-        xlabel = column
+        xlabel = y
     ax.set_xlabel(xlabel, fontsize=14, fontweight='bold')
     ax.yaxis.set_major_locator(plt.FixedLocator(y))
     ax.yaxis.set_major_formatter(plt.FixedFormatter(ylabels))
@@ -368,3 +360,51 @@ def metascape_dotplot(df, column='Adjusted P-value', title='', color='-log10 Pad
         fig.savefig(ofname, bbox_inches='tight', dpi=300)
         return
     return ax
+
+
+
+def gseapy_dotplot(df, x, color, size, cmap, size_scale, size_log):
+    xlabel = x
+    cbar_title = color
+
+    df.sort_values(by=x, ascending=False, inplace=True)
+    norm = Normalize(df[color].min(), df[color].max())
+    df['color'] = df[color].apply(lambda x: cmap(norm(x)))
+    df['size'] = df[size] / df[size].max()
+
+    if size_log:
+        df['size'] = np.log10(df['size'] + 1)
+        df['size'] = df['size'] / df['size'].max()
+        df['size'] = df['size'] * size_scale
+
+    fig, ax = plt.subplots(figsize=(8, 4))
+    ymax = df.shape[0]
+    for y, pathway in enumerate(df.index):
+        x, size, color = df.loc[pathway, ['Odds Ratio', 'size', 'color']]
+        ax.scatter(x, ymax - y, s=size, color=color, edgecolor='black', linewidth=0.5,
+                   label=pathway)
+
+    plt.subplots_adjust(left=0.5, right=0.78)
+    # 设置colorbar
+    cax = fig.add_axes([0.8, 0.15, 0.02, 0.3])
+    cbar = plt.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, cax=cax)
+    cbar.set_label(cbar_title)
+    # 设置yticklabels,xlabel
+    ax.set_yticks(range(1, df.shape[0] + 1))
+    ax.set_yticklabels(df.index[::-1])
+    ax.set_xlabel(xlabel)
+    # 设置网格
+    ax.grid()
+    return ax
+
+def single_dotplot(adata, var, groupby, cmap=None, vmax=None, vmin=None, dot_max=1, dot_min=0, color_scale=None,
+                   size_scale=None, ax=None):
+    if var.isinstance(dict):
+        genes = sum(list(var.values()), [])
+    elif var.isinstance(str):
+        genes = [var]
+    else:
+        genes = var
+    temp_exp_df = adata[:, genes].to_df()
+    mean_exp_df = temp_exp_df.groupby(adata.obs[groupby]).mean()
+    size_df = (temp_exp_df > 0).groupby(adata.obs[groupby]).sum() / temp_exp_df.groupby(adata.obs[groupby]).count()

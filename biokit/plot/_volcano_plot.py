@@ -3,9 +3,10 @@ import numpy as np
 from adjustText import adjust_text
 
 
-def volcano_plot(df, x='log2fc', y='-log10p', color=None, color_dict=None, anno=None, ax=None, groupnames=None):
+def volcano_plot(df, x='log2fc', y='-log10p', color=None, color_dict=None, anno=None, ax=None, groupnames=None,textadjust=True):
     """
 
+    :param textadjust:
     :param groupnames:
     :param anno:
     :param df:
@@ -52,7 +53,8 @@ def volcano_plot(df, x='log2fc', y='-log10p', color=None, color_dict=None, anno=
         texts.append(ax.text(x=df.loc[gene][x], y=df.loc[gene][y], s=gene, fontsize=8,
                              bbox={'facecolor': color_dict[df.loc[gene][color]], 'alpha': 0.3, 'pad': 2,
                                    'linewidth': 0}))
-        adjust_text(texts)
+    if textadjust:
+        adjust_text(texts, only_move={'points': 'y', 'texts': 'y'})
 
     # case control 箭头
     xmax = df[x].abs().max()

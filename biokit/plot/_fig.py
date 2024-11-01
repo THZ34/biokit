@@ -23,4 +23,6 @@ def create_fig(ax_width=4, ax_height=4, n_rows=1, n_cols=1, bottom=0.1, top=0.85
                                          bottom + (1 + hspace) * ax_height_ratio * (n_rows - row - 1), ax_width_ratio,
                                          ax_height_ratio]))
         axes.append(ax_line)
+    if n_rows == 1 and n_cols == 1:
+        axes = axes[0][0]
     return fig, axes

@@ -9,6 +9,7 @@ from matplotlib import pyplot as plt
 from matplotlib.backends.backend_template import FigureCanvas
 from matplotlib.colors import Normalize
 from matplotlib.figure import Figure
+from matplotlib.lines import Line2D
 from numpy import unique
 
 
@@ -259,8 +260,7 @@ def kobas_dotplot(df, column='Adjusted P-value', title='', color='-log10 Padj', 
     return ax
 
 
-def metascape_dotplot(df, y='Adjusted P-value', title='', color='-log10 Padj', cutoff=0.05, top_term=10,
-                      sizes=None, norm=None, legend=True, figsize=(6, 5.5),
+def metascape_dotplot(df, y='Adjusted P-value', title='', color='-log10 Padj', cutoff=0.05, top_term=10, norm=None, legend=True, figsize=(6, 5.5),
                       cmap='RdBu_r', ofname=None, **kwargs):
     """Visualize enrichr results.
 
@@ -362,11 +362,13 @@ def metascape_dotplot(df, y='Adjusted P-value', title='', color='-log10 Padj', c
     return ax
 
 
+def gseapy_dotplot(df, x='Gene Ratio', color='-log10 padj', size='Gene Ratio', cmap='viridis', size_scale=100,
+                   size_log=True):
+    if isinstance(cmap, str):
+        cmap = plt.cm.get_cmap(cmap)
 
-def gseapy_dotplot(df, x, color, size, cmap, size_scale, size_log):
     xlabel = x
     cbar_title = color
-
     df.sort_values(by=x, ascending=False, inplace=True)
     norm = Normalize(df[color].min(), df[color].max())
     df['color'] = df[color].apply(lambda x: cmap(norm(x)))
@@ -385,17 +387,33 @@ def gseapy_dotplot(df, x, color, size, cmap, size_scale, size_log):
                    label=pathway)
 
     plt.subplots_adjust(left=0.5, right=0.78)
-    # ÉèÖÃcolorbar
+    # è®¾ç½®colorbar
     cax = fig.add_axes([0.8, 0.15, 0.02, 0.3])
     cbar = plt.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, cax=cax)
     cbar.set_label(cbar_title)
-    # ÉèÖÃyticklabels,xlabel
+
+    size_values = [df[size].min(), df[size].median(), df[size].max()]
+    size_labels = [f'{v:.2f}' for v in size_values]
+    if size_log:
+        legend_sizes = np.log10(size_values / df[size].max() + 1) / np.log10(2) * size_scale
+    else:
+        legend_sizes = size_values / df[size].max() * size_scale
+
+    legend_elements = [Line2D([0], [0], marker='o', color='w', label=label,
+                              markerfacecolor='gray', markersize=np.sqrt(size))
+                       for label, size in zip(size_labels, legend_sizes)]
+
+    ax.legend(handles=legend_elements, title=size, loc='center left',
+              bbox_to_anchor=(1.02, 0.8), borderaxespad=0.)
+
+    # è®¾ç½®yticklabels,xlabel
     ax.set_yticks(range(1, df.shape[0] + 1))
     ax.set_yticklabels(df.index[::-1])
     ax.set_xlabel(xlabel)
-    # ÉèÖÃÍø¸ñ
+    # è®¾ç½®ç½‘æ ¼
     ax.grid()
     return ax
+
 
 def single_dotplot(adata, var, groupby, cmap=None, vmax=None, vmin=None, dot_max=1, dot_min=0, color_scale=None,
                    size_scale=None, ax=None):

@@ -72,4 +72,5 @@ def load_ensembl_annotation():
     return geneid_df, genename_df, genetype_df
 
 
-from ._singlecell_marker import load_singlecell_marker,load_celltree
+from ._singlecell_marker import load_singlecell_marker, load_celltree
+from ._metascape import load_metascape

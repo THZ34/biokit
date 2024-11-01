@@ -3,11 +3,6 @@ from scipy.stats import ttest_ind
 import seaborn as sns
 
 
-def p2text_func(p, cutoff):
-    for cutoff_value in sorted(list(cutoff.keys())):
-        if p <= cutoff_value:
-            return cutoff[cutoff_value]
-    return 'ns'
 
 
 def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_ind, kind='box', cutoff=None,

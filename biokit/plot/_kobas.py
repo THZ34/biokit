@@ -5,7 +5,11 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+from matplotlib.backends.backend_template import FigureCanvas
 from matplotlib.colors import Normalize
+import numpy as np
+from matplotlib.figure import Figure
+from numpy import unique
 
 
 def kobas_barplot(file):
@@ -53,7 +57,7 @@ def kobas_barplot(file):
 
 
 
-def metascape_dotplot(df, column='Adjusted P-value', title='', color='-log10 Padj', cutoff=0.05, top_term=10,
+def metascape_dotplot(df, column='Adjusted P-value', title='', color='-log10(padj)', cutoff=0.05, top_term=10,
                       sizes=None, norm=None, legend=True, figsize=(6, 5.5),
                       cmap='RdBu_r', ofname=None, **kwargs):
     """Visualize enrichr results.

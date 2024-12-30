@@ -69,9 +69,9 @@ def volcano_plot(df, x='log2fc', y='-log10p', color=None, color_dict=None, anno=
              width=width, head_width=head_width, shape=shape, head_length=head_length)
     ax.arrow(x=0.1 * xmax, y=ymax * 1.1, dx=0.8 * xmax, dy=0, color=color_dict['up'], length_includes_head=True,
              width=width, head_width=head_width, shape=shape, head_length=head_length)
-    ax.text(x=0.12 * xmax, y=ymax * 1.15, s=f'high-exp in {casename}', fontsize=10, fontweight='bold',
+    ax.text(x=0.12 * xmax, y=ymax * 1.15, s=f'{casename}', fontsize=10, fontweight='bold',
             ha='left')
-    ax.text(x=-0.12 * xmax, y=ymax * 1.15, s=f'high-exp in {controlname}', fontsize=10, fontweight='bold',
+    ax.text(x=-0.12 * xmax, y=ymax * 1.15, s=f'{controlname}', fontsize=10, fontweight='bold',
             ha='right')
     ax.text(x=0.5 * xmax, y=ymax * 1.1, s=f'n_genes = {df[color].value_counts().to_dict().get("up", 0)}', fontsize=10,
             fontweight='bold', ha='center', va='center')

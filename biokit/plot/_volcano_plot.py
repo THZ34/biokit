@@ -1,6 +1,20 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from adjustText import adjust_text
+from matplotlib.colors import to_rgb, to_hex
+
+
+def get_text_color(background_color):
+    background_color = to_rgb(background_color)
+    # 计算背景色的亮度
+    r, g, b = background_color
+    brightness = (r * 299 + g * 587 + b * 114) / 1000
+
+    # 根据背景色的亮度选择文本颜色
+    if brightness > 0.5:
+        return to_hex((0, 0, 0))  # 黑色文本
+    else:
+        return to_hex((1, 1, 1))  # 白色文本
 
 
 def volcano_plot(df, x='log2fc', y='-log10p', color=None, color_dict=None, anno=None, ax=None, groupnames=None,
@@ -53,7 +67,7 @@ def volcano_plot(df, x='log2fc', y='-log10p', color=None, color_dict=None, anno=
     for gene in anno:
         texts.append(ax.text(x=df.loc[gene][x], y=df.loc[gene][y], s=gene, fontsize=8,
                              bbox={'facecolor': color_dict[df.loc[gene][color]], 'alpha': 0.3, 'pad': 2,
-                                   'linewidth': 0}))
+                                   'linewidth': 0}, ha='left' if df.loc[gene][x] > 0 else 'right'))
     if textadjust:
         adjust_text(texts, only_move={'points': 'y', 'texts': 'y'})
 
@@ -70,14 +84,13 @@ def volcano_plot(df, x='log2fc', y='-log10p', color=None, color_dict=None, anno=
     ax.arrow(x=0.1 * xmax, y=ymax * 1.1, dx=0.8 * xmax, dy=0, color=color_dict['up'], length_includes_head=True,
              width=width, head_width=head_width, shape=shape, head_length=head_length)
     ax.text(x=0.12 * xmax, y=ymax * 1.15, s=f'{casename}', fontsize=10, fontweight='bold',
-            ha='left')
-    ax.text(x=-0.12 * xmax, y=ymax * 1.15, s=f'{controlname}', fontsize=10, fontweight='bold',
-            ha='right')
+            color=get_text_color(color_dict['up']), ha='left')
+    ax.text(x=-0.12 * xmax, y=ymax * 1.15, s=f'{controlname}', fontsize=10, fontweight='bold', ha='right')
+    # print(get_text_color(color_dict['up']), get_text_color(color_dict['down']))
     ax.text(x=0.5 * xmax, y=ymax * 1.1, s=f'n_genes = {df[color].value_counts().to_dict().get("up", 0)}', fontsize=10,
-            fontweight='bold', ha='center', va='center')
+            fontweight='bold', ha='center', va='center', color=get_text_color(color_dict['up']), )
     ax.text(x=-0.5 * xmax, y=ymax * 1.1, s=f'n_genes = {df[color].value_counts().to_dict().get("down", 0)}',
-            fontsize=10,
-            fontweight='bold', ha='center', va='center')
+            fontsize=10, fontweight='bold', ha='center', va='center', color=get_text_color(color_dict['down']))
     #
     ax.set_xlabel(x)
     ax.set_ylabel(y)

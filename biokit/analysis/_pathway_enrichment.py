@@ -2,12 +2,14 @@
 # Author:Tang Hongzhen
 # Email: tanghongzhen34@gmail.com
 # %%
+import os
 
 
 # %%
 def pathway_enrichment(genes, prefix, outputdir):
-    with open(f'{prefix}.txt', 'w') as f:
+    os.makedirs(outputdir, exist_ok=True)
+    with open(f'{outputdir}/{prefix}.txt', 'w') as f:
         f.write('\n'.join(genes))
-    command = f'docker run -v "$(pwd)":/workdir -w /workdir metadocker8/msbio2 python /msbio/mylib/ms/msbio2.py /workdir/{prefix}.txt' \
-              f' -o /workdir/{outputdir}/{prefix} -t Symbol -s -u --license /workdir/license'
+    command = f'docker run -u "$(id -u)" -v "$(pwd)":/workdir -w /workdir metadocker8/msbio2 python /msbio/mylib/ms/msbio2.py "/workdir/{outputdir}/{prefix}.txt"' \
+              f' -o "/workdir/{outputdir}/{prefix}" -t Symbol -s -u --license /workdir/license'
     return command

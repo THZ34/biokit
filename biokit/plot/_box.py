@@ -1,8 +1,7 @@
 import matplotlib.pyplot as plt
 from scipy.stats import ttest_ind
 import seaborn as sns
-
-
+from biokit.data_convert import p2text as p2text_func
 
 
 def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_ind, kind='box', cutoff=None,
@@ -77,10 +76,11 @@ def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_i
             temp_data = data[data[groupby] == group]
             temp_data['x'] = position
             sns.violinplot(data=temp_data, x=position, y=y, ax=ax, color=colors[groups.index(group)], **kwargs)
-    elif kind == 'hist':
+    elif kind == 'bar':
         for group, position in zip(groups, positions):
             temp_data = data[data[groupby] == group]
-            sns.histplot(data=temp_data, x=y, ax=ax, color=colors[groups.index(group)], **kwargs)
+            sns.barplot(data=temp_data, x=groupby, y=y, ax=ax, palette=dict(zip(groups, colors)), order=groups,
+                        **kwargs)
 
     ptext_y_bottom = ymax + ptext_y_interval
     n_text = 0
@@ -90,7 +90,8 @@ def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_i
             group2 = groups[i + interval]
             x1 = positions[i]
             x2 = positions[i + interval]
-            pvalue = testfunc(data[data[groupby] == group1][y].to_list(), data[data[groupby] == group2][y].to_list()).pvalue
+            pvalue = testfunc(data[data[groupby] == group1][y].to_list(),
+                              data[data[groupby] == group2][y].to_list()).pvalue
             if p2text:
                 ptext = p2text_func(pvalue, cutoff)
                 color = cutoff_color[ptext]

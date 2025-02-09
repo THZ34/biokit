@@ -29,6 +29,7 @@ def get_gse_sampleinfo(gseid):
         t.join()
         n_completed += 1
         print(f'已爬取: {n_completed}/{n_samples}\r', end='')
+
     # 补漏
     for gsmid in gsmids:
         if gsmid not in sample_info:
@@ -55,7 +56,7 @@ def get_gsm_sampleinfo(gsmid, sampleinfo_dict):
                 break
             else:
                 gsm_info[td_list[0].text] = td_list[1].text
-
+    gsm_info['gsmid'] = gsmid
     sampleinfo_dict[gsmid] = gsm_info
 
 

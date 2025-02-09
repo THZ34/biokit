@@ -39,13 +39,16 @@ def load_singlecell_marker():
                    'CD4 Th17': ['CCL20', 'CTSH', 'KLRB1'],
                    'Monocytes': ['CD14', 'FCGR3A', 'S100A8', 'VCAN', 'FCN1', 'CCR2', 'TYROBP', 'LYZ', 'S100A9'],
                    'Macrophages': ['CD68', 'CD163', 'C1QA', 'APOC1', 'CD14', 'CD80'],
-                   'M1 Macrophages': ['HLA-DRA', 'STAT1', 'ITGAX', 'CD86', 'IL10', 'MRC1'],
+                   'M1 Macrophages': ['HLA-DRA', 'STAT1', 'ITGAX', 'CD86', 'IL10', 'MRC1', 'NOS2'],
                    'M2 Macrophages': ['CD163', 'IL10', 'MRC1'],
                    'DCs': ['CLEC9A'],
                    'cDC1': ['CD1C', 'CLEC10A', 'FCER1A'],
                    'cDC2': ['LAMP3', 'CCR7', 'CCL19', 'CCL22'],
                    'cDC3': ['CLEC9A', 'IDO1', 'CADM1', 'CAMK2D'],
                    'pDC': ['LILRA4', 'IRF7', 'IL3RA', 'SELL'],
+                   'Basophil': ['CD69', 'CCR3', 'CD11C'],
+                   'Eosinophil': ['EPX', 'PRG2'],
+                   'Neutrophil': ['MPO'],
                    'Non-Immune': ['PTPRC-low'],
                    'Mast cell': ['KIT', 'MS4A2', 'TPSAB1', 'TPSB2'],
                    'Fibroblast': ['DCN', 'THY1', 'COL6A1', 'COL1A1', 'MMP2', 'PDGFRA'],
@@ -59,8 +62,8 @@ def load_singlecell_marker():
                    'Epithelial AT2': ['SFTPC', 'LAMP3'],
                    'Epithelial AT1': ['AGER', 'PDPN'],
                    'Epithelial Club': ['SCGB1A1'],
-                   'Endothelial': ['PECAM1', 'CD34', 'VWF', 'CD34', 'ACTA2', 'MCAM', 'NID1', 'NID2',
-                                   'HECW2', 'GRB10', 'CA2'],
+                   'Endothelial': ['PECAM1', 'CD34', 'VWF', 'ACTA2', 'MCAM', 'NID1', 'NID2',
+                                   'HECW2', 'GRB10', 'CA2', 'KDR'],
                    'Endo arterial': ['LTC4S', 'PCSK5', 'BMX', 'HEY1'],
                    'Endo capillary': ['ACE', 'CD320', 'ENPP2', 'SLC14A1', 'TMEM88', 'CD36', 'CA4', 'PASK', 'HIGD1B',
                                       'COX4I2', 'NOTCH4', 'PDGFRB', 'RGS5', 'MYL9'],
@@ -73,6 +76,12 @@ def load_singlecell_marker():
                    'Endo venous-like': ['SELP', 'IL33', 'VCAM1']
                    }
     return marker_dict
+
+
+marker_dict = {
+    'Eosinophil': ['EPX', 'PRG2'],
+    'Neutrophil': ['MPO'],
+}
 
 
 def load_celltree():
@@ -165,8 +174,16 @@ def load_celltree():
     }
     return celltree
 
-# 记录数据来源
-# ILC: 优宁维ILC (Innate Lymphoid Cell)固有免疫细胞解决方案 https://univ-shop.oss-cn-shanghai.aliyuncs.com/pc/images/upload/Image/2019060410.jpg
 
-
-# %%  下载并提取cellxgene数据库
+# %%
+marker_detail_dict = {
+    'Eosinophil': {
+        'EPX': '该基因是过氧化物酶基因家族的成员，在嗜酸性粒细胞中表达。编码的前原蛋白被蛋白水解加工成共价连接的重链和轻链，形成成熟的酶，'
+               '起着氧化剂的作用。 该酶在寄生虫感染或过敏原刺激部位释放，以介导原生动物或寄生虫的裂解。',
+        'PRG2': '由该基因编码的蛋白质是嗜酸性粒细胞结晶核的主要成分。这种蛋白质可能作为细胞毒素和蠕虫毒素参与抗寄生虫防御机制，并参与免疫超敏反应。'
+                '编码的蛋白质包含一种肽，该肽对革兰氏阳性菌、革兰氏阴性菌和真菌显示出强大的抗菌活性。这种蛋白质的高水平形式也存在于胎盘和妊娠血清中，'
+                '它以与其他几种蛋白质的复合物形式存在，包括妊娠相关血浆蛋白 A (PAPPA) 、血管紧张素原 (AGT) 和 C3dg。'},
+    'Neutrophil': {'MPO': 'Myeloperoxidase, human white blood cells (MPO) 是一种过氧化物酶。Myeloperoxidase, '
+                          'human white blood cells 通过促进活性氧 (ROS) 和活性氮 (RNS) 的产生，调节小胶质细胞和中性粒细胞的极化和炎症相关信号通路来介导氧化应激。'
+                          'Myeloperoxidase, human white blood cells 具有抗菌 (antibacterial) 活性。'},
+}

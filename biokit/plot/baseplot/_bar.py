@@ -60,7 +60,8 @@ def cumulative_barh(df, color_dict=None, ax=None, normalize=False):
         left = [i + j for i, j in zip(left, df.loc[sample])]
     xlim = 1 if normalize else df.sum().max() * 1.2
     ax.set_xlim(0, xlim)
-    ax.set_yticklabels(df.index)
+    ax.set_yticks(range(df.shape[1]))
+    ax.set_yticklabels(df.columns)
     ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
     if normalize:
         ax.set_xticklabels([f'{int(i * 100)}%' for i in ax.get_xticks()])

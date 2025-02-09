@@ -11,7 +11,7 @@ def p2text(p, cutoff: dict = None):
     :return:
     """
     if not isinstance(cutoff, dict):
-        cutoff = {0.05: '*', 0.01: '**', 0.001: '***'}
+        cutoff = {0.05: '*', 0.01: '**', 0.001: '***',0.0001: '****'}
     for cutoff_value in sorted(list(cutoff.keys())):
         if p <= cutoff_value:
             return cutoff[cutoff_value]

@@ -15,6 +15,8 @@ def load_metascape(file):
             df = load_metascape_xlsx(file)
         elif file.endswith('.zip'):
             df = load_metascape_zip(file)
+    if df.empty:
+        return df
     df = df.loc[df['GroupID'].str.contains('Member')]
     df[['Input number', 'Background number']] = df['InTerm_InList'].str.split('/', expand=True).astype(int)
     df['Ratio'] = df['Input number'] / df['Background number']

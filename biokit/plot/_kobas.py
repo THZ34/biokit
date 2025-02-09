@@ -56,7 +56,6 @@ def kobas_barplot(file):
     return pathway_df, ax
 
 
-
 def metascape_dotplot(df, column='Adjusted P-value', title='', color='-log10(padj)', cutoff=0.05, top_term=10,
                       sizes=None, norm=None, legend=True, figsize=(6, 5.5),
                       cmap='RdBu_r', ofname=None, **kwargs):

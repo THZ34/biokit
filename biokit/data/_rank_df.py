@@ -8,7 +8,7 @@ import scanpy as sc
 
 def get_rank_df(adata, group, key='rank_genes_groups'):
     """
-    ´ÓadataÖĞÌáÈ¡²îÒì»ùÒòÅÅĞò½á¹û
+    ä»adataä¸­æå–å·®å¼‚åŸºå› æ’åºç»“æœ
     :param adata: AnnData object
     :param group: group name
     :param key: key in adata.uns

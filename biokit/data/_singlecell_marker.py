@@ -178,12 +178,12 @@ def load_celltree():
 # %%
 marker_detail_dict = {
     'Eosinophil': {
-        'EPX': '�û����ǹ�������ø�������ĳ�Ա������������ϸ���б�������ǰԭ���ױ�����ˮ��ӹ��ɹ������ӵ��������������γɳ����ø��'
-               '���������������á� ��ø�ڼ������Ⱦ�����ԭ�̼���λ�ͷţ��Խ鵼ԭ��������������ѽ⡣',
-        'PRG2': '�ɸû������ĵ���������������ϸ���ᾧ�˵���Ҫ�ɷ֡����ֵ����ʿ�����Ϊϸ�����غ���涾�ز��뿹������������ƣ����������߳�����Ӧ��'
-                '����ĵ����ʰ���һ���ģ����ĶԸ��������Ծ������������Ծ��������ʾ��ǿ��Ŀ������ԡ����ֵ����ʵĸ�ˮƽ��ʽҲ������̥�̺�����Ѫ���У�'
-                '�������������ֵ����ʵĸ�������ʽ���ڣ������������Ѫ������ A (PAPPA) ��Ѫ�ܽ�����ԭ (AGT) �� C3dg��'},
-    'Neutrophil': {'MPO': 'Myeloperoxidase, human white blood cells (MPO) ��һ�ֹ�������ø��Myeloperoxidase, '
-                          'human white blood cells ͨ���ٽ������� (ROS) �ͻ��Ե� (RNS) �Ĳ���������С����ϸ����������ϸ���ļ�������֢����ź�ͨ·���鵼����Ӧ����'
-                          'Myeloperoxidase, human white blood cells ���п��� (antibacterial) ���ԡ�'},
+        'EPX': '该基因是过氧化物酶基因家族的成员，在嗜酸性粒细胞中表达。编码的前原蛋白被蛋白水解加工成共价连接的重链和轻链，形成成熟的酶，'
+               '起着氧化剂的作用。 该酶在寄生虫感染或过敏原刺激部位释放，以介导原生动物或寄生虫的裂解。',
+        'PRG2': '由该基因编码的蛋白质是嗜酸性粒细胞结晶核的主要成分。这种蛋白质可能作为细胞毒素和蠕虫毒素参与抗寄生虫防御机制，并参与免疫超敏反应。'
+                '编码的蛋白质包含一种肽，该肽对革兰氏阳性菌、革兰氏阴性菌和真菌显示出强大的抗菌活性。这种蛋白质的高水平形式也存在于胎盘和妊娠血清中，'
+                '它以与其他几种蛋白质的复合物形式存在，包括妊娠相关血浆蛋白 A (PAPPA) 、血管紧张素原 (AGT) 和 C3dg。'},
+    'Neutrophil': {'MPO': 'Myeloperoxidase, human white blood cells (MPO) 是一种过氧化物酶。Myeloperoxidase, '
+                          'human white blood cells 通过促进活性氧 (ROS) 和活性氮 (RNS) 的产生，调节小胶质细胞和中性粒细胞的极化和炎症相关信号通路来介导氧化应激。'
+                          'Myeloperoxidase, human white blood cells 具有抗菌 (antibacterial) 活性。'},
 }

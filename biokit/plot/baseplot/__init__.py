@@ -3,7 +3,7 @@
 # Email: tanghongzhen34@gmail.com
 
 """
-»ù´¡»­Í¼ºÍ»ù´¡»­Í¼ÑÜÉúÀà
-Ã¿ÖÖÍ¼½ö°üº¬scatter, bar, line, box, violinÖĞµÄÒ»ÖÖ¹¹³É
+åŸºç¡€ç”»å›¾å’ŒåŸºç¡€ç”»å›¾è¡ç”Ÿç±»
+æ¯ç§å›¾ä»…åŒ…å«scatter, bar, line, box, violinä¸­çš„ä¸€ç§æ„æˆ
 
 """

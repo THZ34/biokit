@@ -7,7 +7,7 @@ import pandas as pd
 def load_metascape(file):
     """
 
-    :param file: xlsx文件或zip文件路径
+    :param file: xlsx鏂囦欢鎴杬ip鏂囦欢璺緞
     :return:
     """
     if isinstance(file, str):

@@ -5,7 +5,7 @@
 
 def p2text(p, cutoff: dict = None):
     """
-    ½«pÖµ×ª»»ÎªÏÔÖøĞÔ·ûºÅ(*,**,***,ns)
+    å°†på€¼è½¬æ¢ä¸ºæ˜¾è‘—æ€§ç¬¦å·(*,**,***,ns)
     :param p:
     :param cutoff:
     :return:

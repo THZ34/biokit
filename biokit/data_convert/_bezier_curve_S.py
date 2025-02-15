@@ -9,10 +9,10 @@ import numpy as np
 
 def bezier_curve_S(points, n_points=1000):
     """
-    Éú³ÉSĞÎ±´Èû¶ûÇúÏß
-    :param points: Æğµã, ¿ØÖÆµã1, ¿ØÖÆµã2, ÖÕµã
-    :param n_points: SĞÎÇúÏßµÄµãÊı
-    :return: SĞÎÇúÏßµÄµã
+    ç”ŸæˆSå½¢è´å¡å°”æ›²çº¿
+    :param points: èµ·ç‚¹, æ§åˆ¶ç‚¹1, æ§åˆ¶ç‚¹2, ç»ˆç‚¹
+    :param n_points: Så½¢æ›²çº¿çš„ç‚¹æ•°
+    :return: Så½¢æ›²çº¿çš„ç‚¹
     """
 
     def bernstein_poly(i, n, t):

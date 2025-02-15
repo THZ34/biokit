@@ -1,15 +1,16 @@
 # coding='utf-8'
 # Author:Tang Hongzhen
 # Email: tanghongzhen34@gmail.com
+from typing import Union
 
 import matplotlib.colors as mcolors
 
 
-def complementary_color(color: str | tuple) -> str:
+def complementary_color(color: Union[str, tuple]) -> str:
     """
-    »ñÈ¡»¥²¹É«
-    :param color: 16½øÖÆÑÕÉ«»òRGBÑÕÉ«
-    :return: colorµÄ»¥²¹É«
+    è·å–äº’è¡¥è‰²
+    :param color: 16è¿›åˆ¶é¢œè‰²æˆ–RGBé¢œè‰²
+    :return: colorçš„äº’è¡¥è‰²
     """
     if isinstance(color, str):
         rgb = mcolors.hex2color(color)

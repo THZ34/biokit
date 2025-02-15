@@ -7,38 +7,38 @@ import numpy as np
 
 def grid_average(df, n_grid_x=5, n_grid_y=5):
     """
-    ½«¶şÎ¬Æ½ÃæµÄµã (x, y, value) »®·ÖÎª n x n Íø¸ñ£¬²¢¼ÆËãÃ¿¸öÍø¸ñÖĞ value µÄÆ½¾ùÖµ¡£
+    å°†äºŒç»´å¹³é¢çš„ç‚¹ (x, y, value) åˆ’åˆ†ä¸º n x n ç½‘æ ¼ï¼Œå¹¶è®¡ç®—æ¯ä¸ªç½‘æ ¼ä¸­ value çš„å¹³å‡å€¼ã€‚
 
-    ²ÎÊı:
-    df: pd.DataFrame, °üº¬ 3 ÁĞ, ·Ö±ğÎª [x, y, value]
-    n: int, Íø¸ñ»®·ÖµÄĞĞÁĞÊı£¬ÀıÈç n=5 Ôò»®·ÖÎª 5x5=25 ¸öÍø¸ñ×ÓÇøÓò
+    å‚æ•°:
+    df: pd.DataFrame, åŒ…å« 3 åˆ—, åˆ†åˆ«ä¸º [x, y, value]
+    n: int, ç½‘æ ¼åˆ’åˆ†çš„è¡Œåˆ—æ•°ï¼Œä¾‹å¦‚ n=5 åˆ™åˆ’åˆ†ä¸º 5x5=25 ä¸ªç½‘æ ¼å­åŒºåŸŸ
 
-    ·µ»Ø:
-    pd.DataFrame, ĞĞË÷ÒıÎª y_bin, ÁĞË÷ÒıÎª x_bin, ÖµÎª¶ÔÓ¦×ÓÍø¸ñµÄÆ½¾ù value
+    è¿”å›:
+    pd.DataFrame, è¡Œç´¢å¼•ä¸º y_bin, åˆ—ç´¢å¼•ä¸º x_bin, å€¼ä¸ºå¯¹åº”å­ç½‘æ ¼çš„å¹³å‡ value
     """
-    # 1. ¼ÆËã x, y µÄ×îĞ¡ÖµºÍ×î´óÖµ£¬ÓÃÓÚÈ·¶¨Íø¸ñ±ß½ç
+    # 1. è®¡ç®— x, y çš„æœ€å°å€¼å’Œæœ€å¤§å€¼ï¼Œç”¨äºç¡®å®šç½‘æ ¼è¾¹ç•Œ
     min_x, max_x = df['x'].min(), df['x'].max()
     min_y, max_y = df['y'].min(), df['y'].max()
 
-    # 2. Éú³ÉÍø¸ñ±ß½ç
+    # 2. ç”Ÿæˆç½‘æ ¼è¾¹ç•Œ
     x_bins = np.linspace(min_x, max_x, n_grid_x + 1)
     y_bins = np.linspace(min_y, max_y, n_grid_y + 1)
 
-    # 3. ÀûÓÃ pd.cut ½« x, y ·Öµ½¶ÔÓ¦µÄÍø¸ñ±àºÅ£¨0 ~ n-1£©
+    # 3. åˆ©ç”¨ pd.cut å°† x, y åˆ†åˆ°å¯¹åº”çš„ç½‘æ ¼ç¼–å·ï¼ˆ0 ~ n-1ï¼‰
     df['x_bin'] = pd.cut(df['x'], bins=x_bins, labels=False, include_lowest=True)
     df['y_bin'] = pd.cut(df['y'], bins=y_bins, labels=False, include_lowest=True)
 
-    # 4. °´ÕÕ (x_bin, y_bin) ·Ö×é£¬È»ºó¼ÆËã value µÄÆ½¾ùÖµ
+    # 4. æŒ‰ç…§ (x_bin, y_bin) åˆ†ç»„ï¼Œç„¶åè®¡ç®— value çš„å¹³å‡å€¼
     grouped = df.groupby(['x_bin', 'y_bin'])['value'].mean().reset_index()
 
-    # 5. ½«½á¹ûÍ¸ÊÓÎªÒ»¸ö n x n µÄ¶şÎ¬±í
-    #    - ĞĞË÷Òı: y_bin
-    #    - ÁĞË÷Òı: x_bin
-    #    - Öµ: mean(value)
+    # 5. å°†ç»“æœé€è§†ä¸ºä¸€ä¸ª n x n çš„äºŒç»´è¡¨
+    #    - è¡Œç´¢å¼•: y_bin
+    #    - åˆ—ç´¢å¼•: x_bin
+    #    - å€¼: mean(value)
     # result = grouped.pivot(index='y_bin', columns='x_bin', values='value')
 
-    # Èç¹ûÓĞÍø¸ñÃ»ÓĞÈÎºÎµãÂäÔÚÆäÖĞ£¬»áÏÔÊ¾Îª NaN£¬¿É¸ù¾İĞèÇó½øĞĞÌî³ä
-    # ÀıÈçÊ¹ÓÃ fillna(0) »òÕß±£Áô NaN
+    # å¦‚æœæœ‰ç½‘æ ¼æ²¡æœ‰ä»»ä½•ç‚¹è½åœ¨å…¶ä¸­ï¼Œä¼šæ˜¾ç¤ºä¸º NaNï¼Œå¯æ ¹æ®éœ€æ±‚è¿›è¡Œå¡«å……
+    # ä¾‹å¦‚ä½¿ç”¨ fillna(0) æˆ–è€…ä¿ç•™ NaN
     # result = result.fillna(0)
 
     return grouped

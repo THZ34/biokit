@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 
 
-def grid_average(df, n_grid_x=5, n_grid_y=5):
+def grid_average(df, n_grid_x=5, n_grid_y=5, method='mean'):
     """
     将二维平面的点 (x, y, value) 划分为 n x n 网格，并计算每个网格中 value 的平均值。
 
@@ -28,8 +28,13 @@ def grid_average(df, n_grid_x=5, n_grid_y=5):
     df['x_bin'] = pd.cut(df['x'], bins=x_bins, labels=False, include_lowest=True)
     df['y_bin'] = pd.cut(df['y'], bins=y_bins, labels=False, include_lowest=True)
 
-    # 4. 按照 (x_bin, y_bin) 分组，然后计算 value 的平均值
-    grouped = df.groupby(['x_bin', 'y_bin'])['value'].mean().reset_index()
+    # 4. 按照 (x_bin, y_bin) 分组，然后计算 value 的平均值/中位数/总和
+    if method == 'mean':
+        grouped = df.groupby(['x_bin', 'y_bin'])['value'].mean().reset_index()
+    elif method == 'median':
+        grouped = df.groupby(['x_bin', 'y_bin'])['value'].median().reset_index()
+    elif method == 'sum':
+        grouped = df.groupby(['x_bin', 'y_bin'])['value'].sum().reset_index()
 
     # 5. 将结果透视为一个 n x n 的二维表
     #    - 行索引: y_bin

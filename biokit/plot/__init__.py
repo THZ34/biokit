@@ -1,4 +1,3 @@
-from plot.baseplot._bar import cumulative_bar
 from ._box import testbox
 from ._circos import Circos
 from ._colors import scicolors

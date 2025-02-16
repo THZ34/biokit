@@ -73,3 +73,19 @@ def download_gse(gseid, output):
             file_response = requests.get(f'{file_url}')
             with open(f'datasets/{gseid}/{filename}', 'wb') as f:
                 f.write(file_response.content)
+
+
+def get_gse_info(gseid, info_dict):
+    url = f'https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc={gseid}'
+    soup = BeautifulSoup(requests.get(url).text, 'html.parser')
+    temp_info_dict = {}
+    status_tag = soup.find_all('td', string='Status')[0]
+    table_tag = status_tag.parent.parent
+    for tr_line in table_tag.find_all('tr', attrs={'valign': 'top'}):
+        try:
+            key = tr_line.find_all('td')[0].text
+            value = tr_line.find_all('td')[1].text
+            temp_info_dict[key] = value
+        except IndexError:
+            continue
+    info_dict[gseid] = temp_info_dict

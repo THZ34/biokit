@@ -71,7 +71,7 @@ def volcano_plot(df, x='log2fc', y='-log10p', color=None, color_dict=None, anno=
                                    'linewidth': 0}, ha='left' if df.loc[gene][x] > 0 else 'right'))
     if textadjust:
         adjust_text(texts, only_move={'points': 'y', 'texts': 'y'})
-    print(texts,anno)
+    print(texts, anno)
 
     # case control 箭头
     xmax = df[x].abs().max()

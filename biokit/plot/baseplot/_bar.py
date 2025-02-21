@@ -11,7 +11,7 @@ config = {"font.family": 'Microsoft YaHei', 'pdf.fonttype': 42}
 rcParams.update(config)
 
 
-def cumulative_bar(df, color_dict=None, ax=None, normalize=False, proportion=False, counts=False, alpha=1):
+def cumulative_bar(df, color_dict=None, ax=None, normalize=False, alpha=1, annot=True):
     """累加柱状图"""
     df = df.copy()
     if not ax:
@@ -20,16 +20,18 @@ def cumulative_bar(df, color_dict=None, ax=None, normalize=False, proportion=Fal
         color_dict = dict(zip(df.index, sns.hls_palette(df.shape[0])))
     if normalize:
         df = df.div(df.sum(axis=0), axis=1)
-    if proportion:
-        proportion_df = df.div(df.sum(axis=1), axis=0)
-        proportion_df = proportion_df.mul(100).round(2)
 
     bottom = [0] * df.shape[1]
     for sample in df.index:
         ax.bar(x=range(df.shape[1]), height=df.loc[sample], bottom=bottom, color=color_dict[sample],
                label=sample, edgecolor='black', alpha=alpha)
+        if annot:
+            for x, sample_bottom, sample_height in zip(range(df.shape[1]), bottom, df.loc[sample]):
+                print(x, sample_bottom, sample_height)
+                ax.text(x=x, y=sample_bottom + sample_height / 2, s=round(sample_height * (100 if normalize else 1), 2),
+                        ha='center', va='center', color='black')
         bottom = [i + j for i, j in zip(bottom, df.loc[sample])]
-    ylim = 1 if normalize else df.sum().max() * 1.2
+    ylim = df.sum().max()
     ax.set_ylim(0, ylim)
     ax.set_xticks(range(df.shape[1]))
     ax.set_xticklabels(df.columns)

@@ -48,11 +48,10 @@ def volcano_plot(df, x='log2fc', y='-log10p', color=None, color_dict=None, anno=
     if anno is None:
         anno = 20
     if type(anno) == float:
-        anno = df[(df[x] < -1) | (df[x] > 1)].sort_values(by=y, ascending=False).index[:int(df.shape[0] * anno)]
+        anno = df[df[color] != 'other'].sort_values(by=y, ascending=False).index[:int(df.shape[0] * anno)]
     elif type(anno) == int:
-        anno = df[(df[x] < -1) | (df[x] > 1)].sort_values(by=y, ascending=False).index[:anno]
+        anno = df[df[color] != 'other'].sort_values(by=y, ascending=False).index[:anno]
     elif type(anno) == list:
-        print(1)
         anno = sorted(list(set(anno) & set(df.index)))
     if not control_case_name:
         control_case_name = ('control', 'case')

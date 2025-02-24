@@ -111,4 +111,6 @@ def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_i
             n_text += 1
     if len(ax.get_xticks()) == len(groups):
         ax.set_xticklabels(groups)
+
+    ax.set_ylim(ymin - 0.05 * ylength, ymax + 0.15 * ylength)
     return ax

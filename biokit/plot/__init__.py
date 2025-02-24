@@ -1,3 +1,6 @@
+from baseplot import *
+from complexplot import *
+
 from ._box import testbox
 from ._circos import Circos
 from ._colors import scicolors
@@ -19,3 +22,4 @@ from ._dot import metascape_dotplot
 from ._neuronetwork import draw_neural_net_double, draw_neural_net_single
 from ._fig import create_fig
 from ._radar import radarplot
+

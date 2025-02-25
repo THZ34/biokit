@@ -5,6 +5,8 @@ from ._box import testbox
 from ._circos import Circos
 from ._colors import scicolors
 from ._colors import show_scicolors
+from ._colors import scicmap
+from ._colors import show_scicmap
 from ._cox import forest_plot
 from ._crosstab import crosstab_plot
 from ._evolution_tree import EvolutionTree

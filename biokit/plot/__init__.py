@@ -1,5 +1,5 @@
-from baseplot import *
-from complexplot import *
+from .baseplot import *
+from .complexplot import *
 
 from ._box import testbox
 from ._circos import Circos

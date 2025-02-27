@@ -6,7 +6,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 
 def text_similarity(input_list, ref_list):
-    """Æ¥ÅäÁ½¸öÁĞ±íÖĞÏàËÆ¶È×î¸ßµÄÎÄ±¾
+    """åŒ¹é…ä¸¤ä¸ªåˆ—è¡¨ä¸­ç›¸ä¼¼åº¦æœ€é«˜çš„æ–‡æœ¬
 
     :param input_list:
     :param ref_list:
@@ -17,25 +17,25 @@ def text_similarity(input_list, ref_list):
     all_texts = input_list + ref_list
     tfidf_matrix = vectorizer.fit_transform(all_texts)
 
-    # ·ÖÀëaºÍbµÄTF-IDF¾ØÕó
+    # åˆ†ç¦»aå’Œbçš„TF-IDFçŸ©é˜µ
     a_tfidf = tfidf_matrix[:len(input_list)]
     b_tfidf = tfidf_matrix[len(input_list):]
 
-    # ÓÃÓÚ´æ´¢×îÖÕ½á¹ûµÄ×Öµä
+    # ç”¨äºå­˜å‚¨æœ€ç»ˆç»“æœçš„å­—å…¸
     result = {}
 
-    # ¶ÔÓÚaÁĞ±íÖĞµÄÃ¿¸öÎÄ±¾£¬ÕÒµ½bÁĞ±íÖĞ×îÏàËÆµÄÎÄ±¾
+    # å¯¹äºaåˆ—è¡¨ä¸­çš„æ¯ä¸ªæ–‡æœ¬ï¼Œæ‰¾åˆ°båˆ—è¡¨ä¸­æœ€ç›¸ä¼¼çš„æ–‡æœ¬
     for i, text_a in enumerate(input_list):
-        # ¼ÆËãa[i]ÓëbÖĞÃ¿¸öÎÄ±¾µÄÓàÏÒÏàËÆ¶È
+        # è®¡ç®—a[i]ä¸bä¸­æ¯ä¸ªæ–‡æœ¬çš„ä½™å¼¦ç›¸ä¼¼åº¦
         similarities = cosine_similarity(a_tfidf[i], b_tfidf)
 
-        # ÕÒµ½bÖĞÓëa[i]ÏàËÆ¶È×î¸ßµÄÎÄ±¾¼°ÆäÏàËÆ¶È
+        # æ‰¾åˆ°bä¸­ä¸a[i]ç›¸ä¼¼åº¦æœ€é«˜çš„æ–‡æœ¬åŠå…¶ç›¸ä¼¼åº¦
         best_match_index = similarities.argmax()
         best_match = ref_list[best_match_index]
         best_similarity = similarities[0][best_match_index]
 
-        # ½«½á¹ûÌí¼Óµ½×ÖµäÖĞ
+        # å°†ç»“æœæ·»åŠ åˆ°å­—å…¸ä¸­
         result[text_a] = (best_match, best_similarity)
 
-    # Êä³ö½á¹û
+    # è¾“å‡ºç»“æœ
     return result

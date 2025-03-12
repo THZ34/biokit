@@ -37,7 +37,7 @@ def genecnr(infile):
 
 
 def check_aachange_file(record_df):
-    # 检查vardict aachange file是否存在
+    # 妫�鏌ardict aachange file鏄惁瀛樺湪
     aachange_files = []
     for workdir, pairid in record_df[['workdir', 'pairid']].to_numpy():
         cloudid = workdir.split('/')[-2]
@@ -51,7 +51,7 @@ def check_aachange_file(record_df):
                 break
         aachange_files.append(aachange_file_path)
     record_df['aachange_file'] = aachange_files
-    # 没有找到aachange文件的样本，解析缓存命中
+    # 娌℃湁鎵惧埌aachange鏂囦欢鐨勬牱鏈紝瑙ｆ瀽缂撳瓨鍛戒腑
     for tumorid in record_df[record_df['aachange_file'].isna()]['tumorid']:
         workdir, pairid = record_df.loc[tumorid, ['workdir', 'pairid']]
         cloudid = workdir.split('/')[-2]
@@ -69,7 +69,7 @@ def check_aachange_file(record_df):
 
 
 def check_cnr_file(record_df):
-    # CNV文件
+    # CNV鏂囦欢
     cnv_files = []
     for workdir, pairid in record_df[['workdir', 'pairid']].to_numpy():
         cloudid = workdir.split('/')[-2]
@@ -83,7 +83,7 @@ def check_cnr_file(record_df):
         cnv_files.append(cnv_file)
     record_df['cnv_file'] = cnv_files
 
-    # 没有找到cnr文件的样本，解析缓存命中
+    # 娌℃湁鎵惧埌cnr鏂囦欢鐨勬牱鏈紝瑙ｆ瀽缂撳瓨鍛戒腑
     for tumorid in record_df[record_df['cnv_file'].isna()]['tumorid']:
         workdir, pairid = record_df.loc[tumorid, ['workdir', 'pairid']]
         cloudid = workdir.split('/')[-2]

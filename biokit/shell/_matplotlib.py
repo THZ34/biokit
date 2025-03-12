@@ -93,3 +93,6 @@ def set_fontpath(fontpath='/usr/share/fonts/truetype/msttcorefonts'):
     config_paths = get_matplotlibrc_path()
     for config_path in config_paths:
         modify_matplotlibrc(config_path, font_path=fontpath)
+
+    # 在用户环境变量中添加
+    os.environ["FONTCONFIG_FILE"] = "/etc/fonts/fonts.conf"

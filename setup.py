@@ -1,6 +1,5 @@
 from setuptools import setup, find_packages
 
-setuptools.setup()
 
 setup(
     name="biokit",

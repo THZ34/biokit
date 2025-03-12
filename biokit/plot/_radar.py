@@ -35,7 +35,7 @@ def radarplot_base(radar_df, groupby, value, groups=None, figsize=None, color_di
                    ax=None, label=None):
     if not figsize:
         figsize = (6, 6)
-    if not groups:
+    if groups is None:
         groups = radar_df[groupby].unique()
     if not color_dict:
         import seaborn as sns
@@ -43,17 +43,15 @@ def radarplot_base(radar_df, groupby, value, groups=None, figsize=None, color_di
     if not ax:
         fig, ax = plt.subplots(figsize=figsize, subplot_kw=dict(polar=True))
 
-    #
-
     radar_df = radar_df[radar_df[groupby].isin(groups)]
     labels = radar_df[groupby].to_numpy()
     stats = radar_df[value].to_numpy()
-    # ¼ÆËã½Ç¶È
+    # è®¡ç®—è§’åº¦
     angles = np.linspace(0, 2 * np.pi, len(labels), endpoint=False).tolist()
-    # ±ÕºÏÍ¼ĞÎ
+    # é—­åˆå›¾å½¢
     stats = np.concatenate((stats, [stats[0]]))
     angles += angles[:1]
-    # »æÍ¼
+    # ç»˜å›¾
     ax.fill(angles, stats, color=facecolor, alpha=0.25)
     ax.plot(angles, stats, color=facecolor, linewidth=2, label=label)
     ax.scatter(angles[:-1], stats[:-1], color=[color_dict[i] for i in labels], s=50, zorder=2)

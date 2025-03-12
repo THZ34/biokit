@@ -11,7 +11,7 @@ config = {"font.family": 'Microsoft YaHei', 'pdf.fonttype': 42}
 rcParams.update(config)
 
 
-def cumulative_bar(df, color_dict=None, ax=None, normalize=False, alpha=1, annot=True):
+def cumulative_bar(df, color_dict=None, ax=None, normalize=False, alpha=1, annot=False):
     """累加柱状图"""
     df = df.copy()
     if not ax:

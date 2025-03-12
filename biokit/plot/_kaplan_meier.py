@@ -15,7 +15,7 @@ from biokit.analysis import cox
 # %%
 
 def kaplan_meier(grouped_df, groupby, time='time', status='status', groups=None, cox_analysis=True, figsize=None,
-                 color_dict=None, cox_table_loc=(0.45, 1), dropna=True, cox_ref=None, show_censors=False):
+                 color_dict=None, cox_table_loc=(0.45, 1), dropna=True, cox_ref=None, show_censors=False, ci_show=False):
     """绘制km曲线
     :param cox_ref:
     :param dropna: 去掉缺失值
@@ -69,8 +69,8 @@ def kaplan_meier(grouped_df, groupby, time='time', status='status', groups=None,
         kmf = KaplanMeierFitter()
         kmf.fit(T, E)
         kmf_dict[group] = copy.copy(kmf)
-        kmf.plot_survival_function(ax=ax_km, ci_show=False, color=color_dict[group], label=group,
-                                   show_censors=show_censors)
+        kmf.plot_survival_function(ax=ax_km, ci_show=ci_show, color=color_dict[group], label=group,
+                                   show_censors=show_censors,)
         os_median = kmf.median_survival_time_
         upper = os_median + 1.96 * T.std() / math.sqrt(len(T))
         lower = os_median - 1.96 * T.std() / math.sqrt(len(T))

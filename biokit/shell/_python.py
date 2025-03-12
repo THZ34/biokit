@@ -9,7 +9,7 @@ import shutil
 
 # %%
 
-def init_pathon():
+def set_index_url():
     os.makedirs('~/.pip', exist_ok=True)
     if os.path.exists('~/.pip/pip.conf'):
         shutil.copy('~/.pip/pip.conf', '~/.pip/pip.conf.bak')

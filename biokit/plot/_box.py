@@ -77,10 +77,9 @@ def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_i
             temp_data['x'] = position
             sns.violinplot(data=temp_data, x=position, y=y, ax=ax, color=colors[groups.index(group)], **kwargs)
     elif kind == 'bar':
-        for group, position in zip(groups, positions):
-            temp_data = data[data[groupby] == group]
-            sns.barplot(data=temp_data, x=groupby, y=y, ax=ax, palette=dict(zip(groups, colors)), order=groups,
-                        **kwargs)
+        data['x'] = x
+        data = data[[groupby, 'x', y]]
+        sns.barplot(data=data, x='x', y=y, hue=groupby, ax=ax, palette=colors, width=width, **kwargs)
 
     ptext_y_bottom = ymax + ptext_y_interval
     n_text = 0
@@ -109,6 +108,7 @@ def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_i
                         [ptext_y - 0.3 * ptext_y_interval, ptext_y, ptext_y, ptext_y - 0.3 * ptext_y_interval],
                         color=color)
             n_text += 1
+    ax.set_xticks(positions)
     if len(ax.get_xticks()) == len(groups):
         ax.set_xticklabels(groups)
 

@@ -23,3 +23,5 @@ conda config --add channels http://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/fr
 conda config --set show_channel_urls yes
 conda config --set always_yes True
     """
+    return command
+

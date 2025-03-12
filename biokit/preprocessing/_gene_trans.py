@@ -41,7 +41,7 @@ def download_ensembl(versions=None, outdir='ref/ensembl'):
                 print(f'{filename}已存在')
 
 
-def get_gencode_genename_df(versions):
+def get_gencode_genename_df(versions, ref_path):
     genename_df = {}
     genetype_df = {}
     geneid_df = {}
@@ -50,7 +50,7 @@ def get_gencode_genename_df(versions):
         version_genetype = {}
         version_geneid = {}
         # 提取genename
-        gencode_gz_file = f'ref/gencode/gencode.v{release_version}.annotation.gtf.gz'
+        gencode_gz_file = f'{ref_path}/gencode.v{release_version}.annotation.gtf.gz'
         with gzip.open(gencode_gz_file, 'rt') as file:
             for line in file:
                 if line.startswith('#'):
@@ -79,7 +79,7 @@ def get_gencode_genename_df(versions):
     geneid_df.to_csv('ref/gencode/geneid.csv')
 
 
-def get_ensembl_genename_df(versions):
+def get_ensembl_genename_df(versions, ref_path):
     genename_df = {}
     genetype_df = {}
     geneid_df = {}
@@ -88,7 +88,7 @@ def get_ensembl_genename_df(versions):
         version_genetype = {}
         version_geneid = {}
         # 提取genename
-        ensembl_gz_file = f'ref/ensembl/Homo_sapiens.GRCh38.{release_version}.gtf.gz'
+        ensembl_gz_file = f'{ref_path}/Homo_sapiens.GRCh38.{release_version}.gtf.gz'
         with gzip.open(ensembl_gz_file, 'rt') as file:
             for line in file:
                 if line.startswith('#'):

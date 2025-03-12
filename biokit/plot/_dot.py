@@ -262,7 +262,7 @@ def kobas_dotplot(df, column='Ratio', title='', color='-log10 Padj', cutoff=0.05
 
 
 def metascape_dotplot(df, x='Ratio', color='-log10(padj)', size='Ratio', cmap='viridis', top_term=10, ax=None,
-                      title='Metascape Pathway Enrichment'):
+                      vmin=None, vmax=None, title='Metascape Pathway Enrichment'):
     if top_term:
         df = df.iloc[:top_term].copy()
     if not ax:
@@ -279,7 +279,11 @@ def metascape_dotplot(df, x='Ratio', color='-log10(padj)', size='Ratio', cmap='v
     df.sort_values('size', inplace=True)
 
     # 颜色
-    norm = Normalize(vmin=df[color].min(), vmax=df[color].max())
+    if not vmin:
+        vmin = df[color].min()
+    if not vmax:
+        vmax = df[color].max()
+    norm = Normalize(vmin=vmin, vmax=vmax)
     df['color'] = df[color].map(lambda x: cmap(norm(x)))
 
     # 绘制气泡图

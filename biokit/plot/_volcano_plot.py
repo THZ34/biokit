@@ -17,7 +17,7 @@ def get_text_color(background_color):
         return to_hex((1, 1, 1))  # 白色文本
 
 
-def volcano_plot(df, x='log2fc', y='-log10p', color=None, color_dict=None, anno=None, ax=None, control_case_name=None,
+def volcano_plot(df, x='logfoldchanges', y='-log10(padj)', color=None, color_dict=None, anno=None, ax=None, control_case_name=None,
                  textadjust=True):
     """
 

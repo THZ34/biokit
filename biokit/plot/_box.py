@@ -79,7 +79,8 @@ def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_i
     elif kind == 'bar':
         data['x'] = x
         data = data[[groupby, 'x', y]]
-        sns.barplot(data=data, x='x', y=y, hue=groupby, ax=ax, palette=colors, width=width, **kwargs)
+        ax.bar(positions, data.groupby(groupby)[y].mean(), width=box_width, yerr=data.groupby(groupby)[y].std(), color=colors, capsize=5, **kwargs)
+        # ax.bar(positions, data.groupby(groupby)[y].mean(), width=box_width, color=colors, capsize=5, **kwargs)
 
     ptext_y_bottom = ymax + ptext_y_interval
     n_text = 0
@@ -112,5 +113,10 @@ def testbox(data, y, x=0, ylim=None, groupby=None, groups=None, testfunc=ttest_i
     if len(ax.get_xticks()) == len(groups):
         ax.set_xticklabels(groups)
 
-    ax.set_ylim(ymin - 0.05 * ylength, ymax + 0.15 * ylength)
+    if kind == 'box':
+        ax.set_ylim(ymin - 0.05 * ylength, ymax + 0.15 * ylength)
+    elif kind == 'violin':
+        ax.set_ylim(ymin - 0.05 * ylength, ymax + 0.15 * ylength)
+    elif kind == 'bar':
+        ax.set_ylim(ymin - 0.05 * ylength, ymax + 0.15 * ylength)
     return ax

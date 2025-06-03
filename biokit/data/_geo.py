@@ -33,7 +33,10 @@ def get_gse_sampleinfo(gseid):
     # 补漏
     for gsmid in gsmids:
         if gsmid not in sample_info:
-            get_gsm_sampleinfo(gsmid, sample_info)
+            try:
+                get_gsm_sampleinfo(gsmid, sample_info)
+            except:
+                continue
 
     sample_info_df = pd.DataFrame(sample_info).T
     return sample_info_df
@@ -51,7 +54,8 @@ def get_gsm_sampleinfo(gsmid, sampleinfo_dict):
                 content = td_list[1].get_text(separator="\n")
                 for line in content.split('\n'):
                     if line:
-                        key, value = line.split(': ')
+                        key = line.split(': ')[0]
+                        value = line.split(': ')[1] if len(line.split(': ')) == 2 else line.split(': ')[1:]
                         gsm_info[key] = value
                 break
             else:
@@ -85,6 +89,9 @@ def get_gse_info(gseid, info_dict):
         try:
             key = tr_line.find_all('td')[0].text
             value = tr_line.find_all('td')[1].text
+            if f'Series {gseid}' in key:
+                continue
+
             temp_info_dict[key] = value
         except IndexError:
             continue

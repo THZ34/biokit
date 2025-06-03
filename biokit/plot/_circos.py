@@ -732,3 +732,104 @@ def pathway_circos(pathway_gene_dict, color_dict=None, pathway_gene_ratio=(1, 1)
             text.set_text('')
     ax.set_ylim(0, 27)
     return circos
+
+
+# %% 通路circos style2
+def pathway_circos_style2(pathway_gene_dict, center_name='Pathway', pathway_radius=0.7, pathway_node_base_size=0.03,
+                pathway_node_adapt_size=0.1, pathway_line_base_width=1, pathway_line_adapt_width=3, gene_radius=1.2,
+                cmap='Set2', ax=None, dpi=100):
+    """
+    环形分叉树
+    :param pathway_gene_dict:
+    :param center_name:
+    :param pathway_radius:
+    :param pathway_node_base_size:
+    :param pathway_node_adapt_size:
+    :param pathway_line_base_width:
+    :param pathway_line_adapt_width:
+    :param gene_radius:
+    :param cmap:
+    :param ax:
+    :param dpi:
+    :return:
+    """
+    import matplotlib.patches as mpatches
+    import math
+    from biokit.data_convert import bezier_curve_S
+
+    if not ax:
+        fig, ax = plt.subplots(figsize=(12, 12), dpi=dpi)
+
+    # 
+    pathway_gene_df = pd.DataFrame([(p, g) for p, gl in pathway_gene_dict.items() for g in gl],
+                                   columns=['pathway', 'gene'])
+
+    # ---------- 角度分配 ----------
+    total_genes = len(pathway_gene_df)
+    angle_step = 360 / total_genes
+    pathway_gene_df['angle'] = [i * angle_step for i in range(total_genes)]
+
+    # ---------- 计算颜色 ----------
+    pathways = pathway_gene_df['pathway'].unique()
+    color_dict = dict(zip(pathways, sns.color_palette(cmap, len(pathways))))
+
+    # ---------- 计算中心-通路连线粗细,以及通路node大小 ----------
+    pathway_gene_counts = pathway_gene_df.groupby('pathway').size()
+    pathway_gene_counts = pathway_gene_counts / pathway_gene_counts.max()
+
+    # ---------- 画图 ----------
+    ax.set_xlim(-1.5, 1.5)
+    ax.set_ylim(-1.5, 1.5)
+    ax.axis('off')
+
+    # 中心点
+    ax.add_patch(mpatches.Circle((0, 0), 0.20, color="#f7cccc", alpha=0.6))
+    ax.text(0, 0, center_name, ha='center', va='center',
+            fontsize=20, fontweight='bold', color="#D62728")
+
+    # 通路节点和基因节点
+    control_point_radius = (pathway_radius + gene_radius) / 2
+    for pathway in pathways:
+        pathway_df = pathway_gene_df[pathway_gene_df['pathway'] == pathway]
+
+        # 通路节点
+        pathway_angle = math.radians(pathway_df['angle'].mean())
+        pathway_node_x, pathway_node_y = pathway_radius * math.cos(pathway_angle), pathway_radius * math.sin(
+            pathway_angle)
+        pathway_node_radius = pathway_node_base_size + pathway_node_adapt_size * pathway_gene_counts[pathway]
+        pathway_line_width = pathway_line_base_width + pathway_line_adapt_width * pathway_gene_counts[pathway]
+        ax.add_patch(
+            mpatches.Circle((pathway_node_x, pathway_node_y), radius=pathway_node_radius,
+                            color=color_dict[pathway], alpha=0.6))
+        ax.text(pathway_node_x, pathway_node_y, pathway, ha='center', va='center',
+                fontsize=16, fontweight='bold', color=color_dict[pathway])
+        ax.plot([0, pathway_node_x], [0, pathway_node_y], color=color_dict[pathway],
+                linewidth=pathway_line_width, alpha=0.8)
+
+        # 贝塞尔曲线控制点1
+        control_point1 = (control_point_radius * math.cos(pathway_angle),
+                          control_point_radius * math.sin(pathway_angle))
+
+        # 基因节点 & 曲线
+        for _, row in pathway_df.iterrows():
+            gene_angle_rad = math.radians(row['angle'])
+            # 基因node位置
+            gene_x, gene_y = gene_radius * math.cos(gene_angle_rad), gene_radius * math.sin(gene_angle_rad)
+            # 贝塞尔曲线控制点2
+            control_point2 = (control_point_radius * math.cos(gene_angle_rad),
+                              control_point_radius * math.sin(gene_angle_rad))
+            # 曲线坐标
+            ctrl_pts = np.array([[pathway_node_x, pathway_node_y], control_point1, control_point2, [gene_x, gene_y]])
+            line = bezier_curve_S(ctrl_pts)
+            ax.plot(line[:, 0], line[:, 1], color=color_dict[pathway], linewidth=1.5, alpha=0.8)
+
+            # 基因文本
+            gene_angle = row['angle']
+            ratation = gene_angle + 180 if 90 <= gene_angle <= 270 else gene_angle
+            text_ha = 'right' if 90 <= gene_angle <= 270 else 'left'
+            ax.text(gene_x, gene_y, row['gene'], ha=text_ha, va='center',
+                    fontsize=10, color=color_dict[pathway],
+                    rotation=ratation, rotation_mode='anchor')
+
+    ax.set_title("Pathway–Gene Network (Curved Line Links)", fontsize=22, fontweight='bold')
+    return ax

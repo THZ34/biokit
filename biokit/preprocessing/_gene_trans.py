@@ -41,6 +41,47 @@ def download_ensembl(versions=None, outdir='ref/ensembl'):
                 print(f'{filename}已存在')
 
 
+def get_genename_df(versions, ref_path, database='gencode', outdir='ref'):
+    os.makedirs(f'{outdir}/{database}',exist_ok=True)
+    genename_df = {}
+    genetype_df = {}
+    geneid_df = {}
+    for release_version in versions:
+        version_genename = {}
+        version_genetype = {}
+        version_geneid = {}
+        # 提取genename
+
+        gencode_gz_file = f'{ref_path}/gencode.v{release_version}.annotation.gtf.gz' if database == 'gencode' else f'{ref_path}/Homo_sapiens.GRCh38.{release_version}.gtf.gz'
+        with gzip.open(gencode_gz_file, 'rt') as file:
+            for line in file:
+                if line.startswith('#'):
+                    continue
+                try:
+                    genename = re.findall('gene_name "(.*?)";', line)[0]
+                except IndexError:
+                    continue
+                genetype = re.findall('gene_type "(.*?)";', line)[0] if database == 'gencode' else \
+                re.findall('gene_biotype "(.*?)";', line)[0]
+                geneid = re.findall('gene_id "(.*?)";', line)[0]
+                version_genename[genename] = 1
+                version_genetype[genename] = genetype
+                version_geneid[genename] = geneid
+        genename_df[release_version] = pd.DataFrame.from_dict(version_genename, orient='index',
+                                                              columns=[f'{database}_v{release_version}'])
+        genetype_df[release_version] = pd.DataFrame.from_dict(version_genetype, orient='index',
+                                                              columns=[f'{database}_v{release_version}'])
+        geneid_df[release_version] = pd.DataFrame.from_dict(version_geneid, orient='index',
+                                                            columns=[f'{database}_v{release_version}'])
+    genename_df = pd.concat(genename_df.values(), axis=1)
+    genetype_df = pd.concat(genetype_df.values(), axis=1)
+    geneid_df = pd.concat(geneid_df.values(), axis=1)
+    genename_df.fillna(0, inplace=True)
+    genename_df.to_csv(f'{outdir}/{database}/genename.csv')
+    genetype_df.to_csv(f'{outdir}/{database}/genetype.csv')
+    geneid_df.to_csv(f'{outdir}/{database}/geneid.csv')
+
+
 def get_gencode_genename_df(versions, ref_path):
     genename_df = {}
     genetype_df = {}
@@ -74,12 +115,9 @@ def get_gencode_genename_df(versions, ref_path):
     genetype_df = pd.concat(genetype_df.values(), axis=1)
     geneid_df = pd.concat(geneid_df.values(), axis=1)
     genename_df.fillna(0, inplace=True)
-    genename_df.to_csv('ref/gencode/genename.csv')
-    genetype_df.to_csv('ref/gencode/genetype.csv')
-    geneid_df.to_csv('ref/gencode/geneid.csv')
 
 
-def get_ensembl_genename_df(versions, ref_path):
+def get_ensembl_genename_df(versions, ref_path, outpath='ref/ensembl'):
     genename_df = {}
     genetype_df = {}
     geneid_df = {}
@@ -118,18 +156,24 @@ def get_ensembl_genename_df(versions, ref_path):
 
 
 def detect_version(genes, genename_df):
+    genes = [i for i in genes if i in genename_df.index]
     genesum = genename_df.loc[genes].sum()
     version = genesum[genesum == genesum.max()].index[0]
-    return version
+    return version, genesum
 
 
-def genename_version_convert(genes, geneid_df, from_version, to_version):
-    genes = [i for i in genes if i in geneid_df.index]
-    from_geneid_df = geneid_df.loc[genes, from_version].dropna()
-    genes = from_geneid_df.index
-    from_version_dict = dict(zip(from_geneid_df.index, from_geneid_df))
-    to_geneid_df = geneid_df.loc[geneid_df[to_version].isin(from_geneid_df.to_list()), to_version]
-    to_version_dict = dict(zip(to_geneid_df, to_geneid_df.index))
-    gene_trans_dict = {gene: to_version_dict.get(from_version_dict[gene], gene) for gene in genes}
+# def genename_version_convert(genes, geneid_df, from_version, to_version):
+#     genes = [i for i in genes if i in geneid_df.index]
+#     from_geneid_df = geneid_df.loc[genes, from_version].dropna()
+#     genes = from_geneid_df.index
+#     from_version_dict = dict(zip(from_geneid_df.index, from_geneid_df))
+#     to_geneid_df = geneid_df.loc[geneid_df[to_version].isin(from_geneid_df.to_list()), to_version]
+#     to_version_dict = dict(zip(to_geneid_df, to_geneid_df.index))
+#     gene_trans_dict = {gene: to_version_dict.get(from_version_dict[gene], gene) for gene in genes}
+#     gene_trans_dict = {key: value for key, value in gene_trans_dict.items() if (key != value)}
+#     return gene_trans_dict
+def genename_version_convert(geneid_df, from_version, to_version):
+    gene_trans_dict = geneid_df.set_index(from_version)[to_version].to_dict()
     gene_trans_dict = {key: value for key, value in gene_trans_dict.items() if (key != value)}
+    gene_trans_dict = {key: value for key, value in gene_trans_dict.items() if not pd.isna(value)}
     return gene_trans_dict

@@ -2,7 +2,7 @@
 # Author:Tang Hongzhen
 # Email: tanghongzhen34@gmail.com
 import matplotlib.pyplot as plt
-
+import numpy as np
 
 def create_fig(ax_width=4, ax_height=4, n_rows=1, n_cols=1, bottom=0.1, top=0.85, left=0.05, right=0.75, wspace=0.2,
                hspace=0.3):
@@ -25,4 +25,4 @@ def create_fig(ax_width=4, ax_height=4, n_rows=1, n_cols=1, bottom=0.1, top=0.85
         axes.append(ax_line)
     if n_rows == 1 and n_cols == 1:
         axes = axes[0][0]
-    return fig, axes
+    return fig, np.array(axes)

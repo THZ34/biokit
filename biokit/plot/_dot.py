@@ -276,7 +276,7 @@ def metascape_dotplot(df, x='Ratio', color='-log10(padj)', size='Ratio', cmap='v
     df['size'] = df[size]
     df['size'] = MinMaxScaler().fit_transform(df['size'].values.reshape(-1, 1)).reshape(-1)
     df['size'] = 100 + df['size'] * 400
-    df.sort_values('size', inplace=True)
+    # df.sort_values('size', inplace=True)
 
     # 颜色
     if not vmin:
@@ -302,7 +302,6 @@ def metascape_dotplot(df, x='Ratio', color='-log10(padj)', size='Ratio', cmap='v
     # 图例
     legend_ax = fig.add_axes([0.89, ax_bottom + ax_height * 0.45, 0.06, ax_height / 2])
     for i, size in enumerate([0.1, 0.3, 0.5, 0.7, 0.9]):
-
         legend_ax.scatter(0, i, s=100 + size * 400, c='black', edgecolor='grey', linewidth=0.5, zorder=3)
         text = df[size_name].min() + size * (df[size_name].max() - df[size_name].min())
         legend_ax.text(0.2, i, f'{text:.2f}', va='center', fontsize=16)

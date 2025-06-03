@@ -30,11 +30,13 @@ def grid_average(df, n_grid_x=5, n_grid_y=5, method='mean'):
 
     # 4. 按照 (x_bin, y_bin) 分组，然后计算 value 的平均值/中位数/总和
     if method == 'mean':
-        grouped = df.groupby(['x_bin', 'y_bin'])['value'].mean().reset_index()
+        grouped = df.groupby(['x_bin', 'y_bin']).mean().reset_index()
     elif method == 'median':
-        grouped = df.groupby(['x_bin', 'y_bin'])['value'].median().reset_index()
+        grouped = df.groupby(['x_bin', 'y_bin']).median().reset_index()
     elif method == 'sum':
-        grouped = df.groupby(['x_bin', 'y_bin'])['value'].sum().reset_index()
+        grouped = df.groupby(['x_bin', 'y_bin']).sum().reset_index()
+    elif method == 'max':
+        grouped = df.groupby(['x_bin', 'y_bin']).max().reset_index()
 
     # 5. 将结果透视为一个 n x n 的二维表
     #    - 行索引: y_bin

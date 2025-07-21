@@ -268,6 +268,9 @@ def metascape_dotplot(df, x='Ratio', color='-log10(padj)', size='Ratio', cmap='v
     if not ax:
         fig_height = 2 + df.shape[0] / 2
         fig, ax = plt.subplots(figsize=(12, fig_height))
+    else:
+        fig = ax.get_figure()
+        fig_height = fig.get_size_inches()[1]
     if isinstance(cmap, str):
         cmap = plt.get_cmap(cmap)
 

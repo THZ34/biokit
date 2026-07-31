@@ -14,9 +14,8 @@ from numpy import unique
 from sklearn.preprocessing import MinMaxScaler
 
 
-def gsea_pathwayplot(df, column='Adjusted P-value', title='', color='-log10 Padj', cutoff=0.05, top_term=10,
-                     sizes=None, norm=None, legend=True, figsize=(6, 5.5),
-                     cmap='RdBu_r', ofname=None, **kwargs):
+def gsea_pathwayplot(df, column='Adjusted P-value', title='', color='-log10 Padj', cutoff=0.05, top_term=10, sizes=None,
+                     norm=None, legend=True, figsize=(6, 5.5), cmap='RdBu_r', ofname=None, **kwargs):
     """Visualize enrichr results.
 
     :param df: GSEApy DataFrame results.
@@ -93,8 +92,7 @@ def gsea_pathwayplot(df, column='Adjusted P-value', title='', color='-log10 Padj
         ax = fig.add_subplot(111)
     vmin = np.percentile(combined_score.min(), 2)
     vmax = np.percentile(combined_score.max(), 98)
-    sc = ax.scatter(x=x, y=y, s=area, edgecolors='face', c=combined_score,
-                    cmap=cmap, vmin=vmin, vmax=vmax)
+    sc = ax.scatter(x=x, y=y, s=area, edgecolors='face', c=combined_score, cmap=cmap, vmin=vmin, vmax=vmax)
 
     if column in ['Adjusted P-value', 'P-value']:
         xlabel = "-log$_{10}$(%s)" % column
@@ -138,9 +136,8 @@ def gsea_pathwayplot(df, column='Adjusted P-value', title='', color='-log10 Padj
     return ax
 
 
-def kobas_dotplot(df, column='Ratio', title='', color='-log10 Padj', cutoff=0.05, top_term=10,
-                  sizes=None, norm=None, legend=True, figsize=(6, 5.5),
-                  cmap='RdBu_r', ofname=None, **kwargs):
+def kobas_dotplot(df, column='Ratio', title='', color='-log10 Padj', cutoff=0.05, top_term=10, sizes=None, norm=None,
+                  legend=True, figsize=(6, 5.5), cmap='RdBu_r', ofname=None, **kwargs):
     """Visualize enrichr results.
 
     :param df: GSEApy DataFrame results.
@@ -216,8 +213,7 @@ def kobas_dotplot(df, column='Ratio', title='', color='-log10 Padj', cutoff=0.05
         ax = fig.add_subplot(111)
     vmin = np.percentile(combined_score.min(), 2)
     vmax = np.percentile(combined_score.max(), 98)
-    sc = ax.scatter(x=x, y=y, s=area, edgecolors='face', c=combined_score,
-                    cmap=cmap, vmin=vmin, vmax=vmax)
+    sc = ax.scatter(x=x, y=y, s=area, edgecolors='face', c=combined_score, cmap=cmap, vmin=vmin, vmax=vmax)
 
     if column in ['Adjusted P-value', 'P-value']:
         xlabel = "-log$_{10}$(%s)" % column
@@ -323,8 +319,7 @@ def metascape_dotplot(df, x='Ratio', color='-log10(padj)', size='Ratio', cmap='v
     fig.colorbar(sm, cax=cax)
     cax.set_title(color, fontsize=16)
 
-    ax.set_ylim(0.5, df.shape[0] - 0.5)
-
+    ax.set_ylim(-0.5, df.shape[0] - 0.5)
 
     return fig, {'main': ax, 'legend': legend_ax, 'cbar': cax}
 
@@ -350,8 +345,7 @@ def gseapy_dotplot(df, x='Gene Ratio', color='-log10 padj', size='Gene Ratio', c
     ymax = df.shape[0]
     for y, pathway in enumerate(df.index):
         x, size, color = df.loc[pathway, ['Odds Ratio', 'size', 'color']]
-        ax.scatter(x, ymax - y, s=size, color=color, edgecolor='black', linewidth=0.5,
-                   label=pathway)
+        ax.scatter(x, ymax - y, s=size, color=color, edgecolor='black', linewidth=0.5, label=pathway)
 
     plt.subplots_adjust(left=0.5, right=0.78)
     # 设置colorbar
@@ -366,12 +360,11 @@ def gseapy_dotplot(df, x='Gene Ratio', color='-log10 padj', size='Gene Ratio', c
     else:
         legend_sizes = size_values / df[size].max() * size_scale
 
-    legend_elements = [Line2D([0], [0], marker='o', color='w', label=label,
-                              markerfacecolor='gray', markersize=np.sqrt(size))
-                       for label, size in zip(size_labels, legend_sizes)]
+    legend_elements = [
+        Line2D([0], [0], marker='o', color='w', label=label, markerfacecolor='gray', markersize=np.sqrt(size)) for
+        label, size in zip(size_labels, legend_sizes)]
 
-    ax.legend(handles=legend_elements, title=size, loc='center left',
-              bbox_to_anchor=(1.02, 0.8), borderaxespad=0.)
+    ax.legend(handles=legend_elements, title=size, loc='center left', bbox_to_anchor=(1.02, 0.8), borderaxespad=0.)
 
     # 设置yticklabels,xlabel
     ax.set_yticks(range(1, df.shape[0] + 1))

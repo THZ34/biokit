@@ -2,7 +2,11 @@
 # Author:Tang Hongzhen
 # Email: tanghongzhen34@gmail.com
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Thread
+import shutil
+import subprocess
+import tempfile
 import requests
 import re
 import time
@@ -149,28 +153,136 @@ def get_gsm_sampleinfo(gsmid, sampleinfo_dict):
     sampleinfo_dict[gsmid] = gsm_info
 
 
-def download_gse(gseid, output=None):
+def download_gse(gseid, output=None, max_workers=4):
     """下载GSE数据集的补充文件
 
     :param gseid: GSE编号，如GSE132465
     :param output: 输出目录，如None则不下载，只返回文件链接列表
+    :param max_workers: 并发下载任务数
     :return:
     """
     url = f'https://ftp.ncbi.nlm.nih.gov/geo/series/{gseid[:-3]}nnn/{gseid}/suppl'
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
+    downloader = shutil.which('aria2c') or shutil.which('wget')
+    if not downloader:
+        raise EnvironmentError('download_gse requires aria2c or wget to be installed')
+
+    if os.path.basename(downloader).lower().startswith('aria2c') and shutil.which('wget'):
+        list_cmd = [shutil.which('wget'), '-q', '-O', '-', url]
+        list_proc = subprocess.Popen(list_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        list_stdout, list_stderr = list_proc.communicate()
+        if list_proc.returncode != 0:
+            raise RuntimeError(
+                'download_gse failed to fetch listing for {} with {}:\n{}'.format(
+                    url,
+                    list_cmd[0],
+                    list_stderr.decode('utf-8', errors='ignore') if list_stderr else '',
+                )
+            )
+    elif os.path.basename(downloader).lower().startswith('aria2c'):
+        tmp_dir = tempfile.mkdtemp(prefix='biokit_gse_')
+        try:
+            list_name = '{}_suppl_listing.html'.format(gseid)
+            list_path = os.path.join(tmp_dir, list_name)
+            list_cmd = [
+                downloader,
+                '--allow-overwrite=true',
+                '--file-allocation=none',
+                '--dir',
+                tmp_dir,
+                '--out',
+                list_name,
+                url,
+            ]
+            list_proc = subprocess.Popen(list_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            _, list_stderr = list_proc.communicate()
+            if list_proc.returncode != 0:
+                raise RuntimeError(
+                    'download_gse failed to fetch listing for {} with {}:\n{}'.format(
+                        url,
+                        downloader,
+                        list_stderr.decode('utf-8', errors='ignore') if list_stderr else '',
+                    )
+                )
+            if not os.path.exists(list_path):
+                raise RuntimeError('download_gse failed to fetch listing for {}'.format(url))
+            with open(list_path, 'rb') as f:
+                list_stdout = f.read()
+        finally:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+    else:
+        list_cmd = [downloader, '-q', '-O', '-', url]
+        list_proc = subprocess.Popen(list_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        list_stdout, list_stderr = list_proc.communicate()
+        if list_proc.returncode != 0:
+            raise RuntimeError(
+                'download_gse failed to fetch listing for {} with {}:\n{}'.format(
+                    url,
+                    downloader,
+                    list_stderr.decode('utf-8', errors='ignore') if list_stderr else '',
+                )
+            )
+
+    soup = BeautifulSoup(list_stdout.decode('utf-8', errors='ignore'), 'html.parser')
     a_tags = soup.find_all('a')
     urls = []
+    files = []
     for a_tag in a_tags:
         if not a_tag.text == 'Parent Directory' and not a_tag.text == 'HHS Vulnerability Disclosure':
             filename = a_tag.get('href')
+            if not filename:
+                continue
             file_url = f'{url}/{filename}'
-            if output:
-                os.makedirs(f'{output}/{gseid}', exist_ok=True)
-                file_response = requests.get(f'{file_url}')
-                with open(f'datasets/{gseid}/{filename}', 'wb') as f:
-                    f.write(file_response.content)
+            files.append((filename, file_url))
             urls.append(file_url)
+
+    if output and files:
+        os.makedirs(f'{output}/{gseid}', exist_ok=True)
+
+        def _download_one(item):
+            filename, file_url = item
+            dst = os.path.join(output, gseid, filename)
+            if os.path.exists(dst):
+                return file_url
+
+            if os.path.basename(downloader).lower().startswith('aria2c'):
+                cmd = [
+                    downloader,
+                    '--allow-overwrite=true',
+                    '--continue=true',
+                    '--file-allocation=none',
+                    '--split=16',
+                    '--max-connection-per-server=16',
+                    '--min-split-size=1M',
+                    '--dir',
+                    os.path.join(output, gseid),
+                    '--out',
+                    filename,
+                    file_url,
+                ]
+            else:
+                cmd = [
+                    downloader,
+                    '-c',
+                    '-O',
+                    dst,
+                    file_url,
+                ]
+
+            proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, stderr = proc.communicate()
+            if proc.returncode != 0:
+                raise RuntimeError(
+                    'download_gse failed for {} with {}:\n{}'.format(
+                        file_url, downloader, stderr.decode('utf-8', errors='ignore') if stderr else ''
+                    )
+                )
+            return file_url
+
+        max_workers = max(1, min(max_workers, len(files)))
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = [executor.submit(_download_one, item) for item in files]
+            for future in as_completed(futures):
+                future.result()
     return urls
 
 

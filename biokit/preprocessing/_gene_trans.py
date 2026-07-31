@@ -181,7 +181,9 @@ def detect_version(genes, genename_df):
 
 def genename_version_convert(geneid_df, from_version, to_version):
     """通过转录本ID在不同版本之间转换基因名"""
-    from_dict = dict(zip(geneid_df[from_version], geneid_df.index))
-    to_dict = dict(zip(geneid_df[to_version], geneid_df.index))
+    from_dict = dict(zip(geneid_df.dropna(subset=[from_version])[from_version],
+                         geneid_df.dropna(subset=[from_version]).index))
+    to_dict = dict(zip(geneid_df.dropna(subset=[to_version])[to_version],
+                       geneid_df.dropna(subset=[to_version]).index))
     convert_dict = {value: to_dict.get(key, value) for key, value in from_dict.items()}
     return convert_dict

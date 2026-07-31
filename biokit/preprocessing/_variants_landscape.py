@@ -1,9 +1,16 @@
 # %%
 import pandas as pd
-from scipy.sparse import coo_matrix
+
 
 def sort_mutation(mut_df):
-    mutation_stat = (mut_df != 'no mutate').astype(bool).astype(int)
+    mut_df = mut_df.copy()
+    mut_df.replace({'no mutate': None}, inplace=True)
+    mutation_stat = mut_df.notna().astype(int)
+    mutation_stat = mutation_stat.T
+    mutation_stat['sum'] = mutation_stat.sum(1)
+    mutation_stat.sort_values(by='sum', inplace=True, ascending=False)
+    mutation_stat = mutation_stat.drop('sum', axis=1).sort_values(by=list(mutation_stat.index), axis=1, ascending=False)
+    mutation_stat = mutation_stat.T
     mutation_stat['sum'] = mutation_stat.sum(1)
     mutation_stat.sort_values(by='sum', inplace=True, ascending=False)
     mutation_stat = mutation_stat.drop('sum', axis=1).sort_values(by=list(mutation_stat.index), axis=1, ascending=False)
@@ -68,7 +75,7 @@ def read_aachange(patients, files, allow_multi_hits=False):
 
     multi_marked_snv['effect'].replace(variant_dict, inplace=True)
     mutations = multi_marked_snv.pivot(index='gene', columns='sample', values='effect')
-    mutation_stat = mutations.astype(bool).astype(int)
+    mutation_stat = mutations.notna().astype(int)
     mutation_stat['sum'] = mutation_stat.sum(1)
     mutation_stat.sort_values(by='sum', inplace=True, ascending=False)
     mutation_stat = mutation_stat.drop('sum', axis=1).sort_values(by=list(mutation_stat.index), axis=1, ascending=False)

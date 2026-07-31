@@ -325,6 +325,7 @@ def testbox(data, y, x=None, x_order=None, groupby=None, groups=None, kind='box'
     if ylim is not None:
         ax.set_ylim(ylim[0], ylim[1] + 4 * pstep)
     else:
+        cur_top = raw_cur_top
         ax.set_ylim(ymin - 0.05 * ylength, cur_top + 2 * pstep)
 
     # 去掉右上边框

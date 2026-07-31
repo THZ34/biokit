@@ -7,6 +7,7 @@ from scipy.sparse import coo_matrix
 from biokit.plot._heatmap import heatmap_circledot
 from biokit.plot._heatmap import heatmap_cumulativebox
 from itertools import chain
+import matplotlib.patches as mpatches
 
 
 def fig_ax_coordinate_transformation(ax, fig_y):
@@ -21,7 +22,7 @@ def fig_ax_coordinate_transformation(ax, fig_y):
 
 def oncoplot(mutations, sample_info=None, figsize=None, color_dict=None, discrete_colors=None, fraction_lim=None,
              info_loc=None, fraction_annot=False, legend_y_adjust=0, legend_interval=10, allow_multi_hits=True,
-             heatmap_kind='box', legendnames=None,legend_width = 12):
+             heatmap_kind='box', legendnames=None, legend_width=12, gene_type_dict=None, gene_type_color_dict=None):
     """oncoplot 瀑布图
 
 
@@ -77,8 +78,7 @@ def oncoplot(mutations, sample_info=None, figsize=None, color_dict=None, discret
             variants.append(variant)
 
     sample_info = sample_info.loc[xticklabels]
-    continuous_columns = sample_info.dtypes[
-        ~((sample_info.dtypes == 'object') | (sample_info.dtypes == 'bool'))].index
+    continuous_columns = sample_info.dtypes[~((sample_info.dtypes == 'object') | (sample_info.dtypes == 'bool'))].index
     discrete_columns = sample_info.dtypes[(sample_info.dtypes == 'object') | (sample_info.dtypes == 'bool')].index
 
     # 临床信息的位置
@@ -96,8 +96,8 @@ def oncoplot(mutations, sample_info=None, figsize=None, color_dict=None, discret
 
     # 画图前准备
     if not figsize:
-        figsize = (
-            mutations.shape[1] + 3 + legend_width, len(discrete_columns) + len(continuous_columns) * 2 + len(yticklabels) + 3)
+        figsize = (mutations.shape[1] + 3 + legend_width,
+                   len(discrete_columns) + len(continuous_columns) * 2 + len(yticklabels) + 3)
         figsize = (figsize[0] / 4, figsize[1] / 4)
         figsize = (figsize[0] * 1.5, figsize[1] * 1.5)
     fig = plt.figure(figsize=figsize)
@@ -173,8 +173,7 @@ def oncoplot(mutations, sample_info=None, figsize=None, color_dict=None, discret
                 tmp_df = sample_info[sample_info[column] == subtype]
                 if not tmp_df.empty:
                     ax.bar(x=tmp_df.index, height=[1] * tmp_df.shape[0], color=discrete_colors[column][subtype],
-                           width=1,
-                           label=subtype)
+                           width=1, label=subtype)
             ax.spines['left'].set_visible(False)
             ax.set_yticks([])
             ax.set_ylabel(column, rotation=0, ha='right', va='center', fontsize=10)
@@ -292,10 +291,12 @@ def oncoplot(mutations, sample_info=None, figsize=None, color_dict=None, discret
 
     # 调整突变比例的坐标系
     ax_dict['mut_stat_gene'].set_ylim(ax_dict['heatmap'].get_ylim())  # 基因突变统计的纵坐标与热图保持一致
-    for ax in list(chain.from_iterable([[ax_dict['mut_stat_sample']], list(ax_dict['upper'].values()), list(ax_dict['upper'].values())])):
+    for ax in list(chain.from_iterable(
+            [[ax_dict['mut_stat_sample']], list(ax_dict['upper'].values()), list(ax_dict['upper'].values())])):
         ax.set_xlim(-0.6, sample_info.shape[0] - 0.4)
 
-    # 转移xtickslabel
+    # 转移xticklabels
+    ax_heatmap = ax_dict['heatmap']
     if len(info_loc['bottom']) > 0:
         ax_heatmap = ax_dict['heatmap']
         ax = ax_dict['bottom'][info_loc['bottom'][-1]]
@@ -303,6 +304,25 @@ def oncoplot(mutations, sample_info=None, figsize=None, color_dict=None, discret
         ax.set_xticklabels(ax_heatmap.get_xticklabels(), rotation=90)
         ax_heatmap.set_xticks([])
         ax_heatmap.set_xticklabels([])
+
+    # xticklabels着色
+    if gene_type_dict:
+        if not gene_type_color_dict:
+            gene_types = set(gene_type_dict.values())
+            gene_type_color_dict = dict(zip(gene_types, sns.color_palette("hls", len(gene_types))))
+        for tick in ax_heatmap.get_yticklabels():
+            gene = tick.get_text()
+            if gene in gene_type_dict:
+                tick.set_color(gene_type_color_dict[gene_type_dict[gene]])
+                tick.set_fontweight('bold')
+                tick.set_fontsize(16)
+
+        gene_legend_handles = [mpatches.Patch(color=gene_type_color_dict[i], label=i) for i in gene_type_color_dict.keys()]
+        # 在mut_stat_gene右侧添加OncoKB gene type图例
+        mut_stat_gene_ax = ax_dict['mut_stat_gene']
+        mut_stat_gene_ax.legend(handles=gene_legend_handles, title='Gene function', loc='upper left',
+                                bbox_to_anchor=(1.02, 0.8), fontsize=15,
+                                title_fontproperties={'weight': 'bold', 'size': 15}, )
 
     # 设置图例
     axes_require_legend = {'Variants Type': ax_dict['heatmap']}
@@ -319,8 +339,8 @@ def oncoplot(mutations, sample_info=None, figsize=None, color_dict=None, discret
             ax = axes_require_legend[title]
             handles, labels = ax.get_legend_handles_labels()
             legend_y = fig_ax_coordinate_transformation(ax_heatmap, legend_upper) + legend_y_adjust
-            legend = ax_heatmap.legend(handles=handles, labels=labels, title=title, bbox_to_anchor=(
-                (mutations.shape[1] + 3) / mutations.shape[1], legend_y), ncol=1,
+            legend = ax_heatmap.legend(handles=handles, labels=labels, title=title,
+                                       bbox_to_anchor=((mutations.shape[1] + 3) / mutations.shape[1], legend_y), ncol=1,
                                        loc='upper left', title_fontproperties={'weight': 'bold', 'size': 15},
                                        fontsize=15)
             ax_heatmap.add_artist(legend)

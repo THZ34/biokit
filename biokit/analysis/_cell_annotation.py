@@ -42,7 +42,7 @@ def anno_level_cells(adata, cutoff_dict, cell_tree, marker_dict, all_cluster_mar
     colname = f'level{level} cellanno'
     for cells in cell_chains:
         if level > 1:
-            # ¸ù¾Ý¸¸ÀàÉ¸Ñ¡±¾¼¶ÐèÒª×¢ÊÍµÄÏ¸°û
+            # æ ¹æ®çˆ¶ç±»ç­›é€‰æœ¬çº§éœ€è¦æ³¨é‡Šçš„ç»†èƒž
             parent_celltype = cells[level - 2]
             clusters = adata.obs.loc[adata.obs[f'level{level - 1} cellanno'] == parent_celltype, cluster_key].unique()
         else:
@@ -60,7 +60,7 @@ def anno_cells(adata, cutoff_dict, cell_tree, marker_dict, all_cluster_marker_ge
         adata.obs[f'level{level} cellanno'] = None
         anno_level_cells(adata, cutoff_dict, cell_tree, marker_dict, all_cluster_marker_gene_ratio,
                          cluster_key, level=level)
-        # ÈÎÒâÒ»¼¶Ã»ÓÐ×¢ÊÍµ½×ÓÀàÔòÑØÓÃÉÏÒ»¼¶
+        # ä»»æ„ä¸€çº§æ²¡æœ‰æ³¨é‡Šåˆ°å­ç±»åˆ™æ²¿ç”¨ä¸Šä¸€çº§
         if level == 1:
             adata.obs[f'level{level} cellanno'].fillna('Non-Immune', inplace=True)
         if level > 1:

@@ -5,7 +5,7 @@ from matplotlib import rcParams
 
 
 # %%
-def forest_plot(cox_result, ax=None):
+def forest_plot(cox_result, cox_input_df, ax=None):
     """cox回归森林图
 
     :param cox_result: biokit.analysis.cox 函数返回值
@@ -50,7 +50,7 @@ def forest_plot(cox_result, ax=None):
                         ax.ticklabel_format(style='sci', axis='y')
         else:
             group = groupby
-            n_sample = cox_result.df.shape[0]
+            n_sample = cox_input_df.shape[0]
             hr, hr_l, hr_h = cox_result[['HR', 'HR(95CI-Low)', 'HR(95CI-High)']].loc[groupby, group]
             if hr_h < 1000:
                 groups_cox_table.append(
@@ -59,7 +59,6 @@ def forest_plot(cox_result, ax=None):
                 groups_cox_table.append(
                     [groupby, f'{group}\n(n={n_sample})', f'{hr:0.2f}\n({hr_l:0.2f} ~ {hr_h:0.2e})'])
                 ax.ticklabel_format(style='sci', axis='y')
-
         table.extend(group_ref_cox_table)
         table.extend(groups_cox_table)
 
@@ -86,8 +85,7 @@ def forest_plot(cox_result, ax=None):
     lines = [0]
     interval = max_except_inf // 4
     if interval > 0:
-        lines.extend(list(
-            np.arange(1 + interval, max_except_inf, interval)))
+        lines.extend(list(np.arange(1 + interval, max_except_inf, interval)))
         for x in lines:
             ax.plot([x, x], [0, index_df.shape[0]], color='grey', alpha=0.7, zorder=1)
         # 参考线坐标

@@ -4,6 +4,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from matplotlib import cm
+from matplotlib.colors import Colormap
+from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.colors import Normalize
+from matplotlib.colors import to_hex
 
 
 class Circos(object):
@@ -13,6 +18,7 @@ class Circos(object):
         self.background = None
         self.background_scale = None
         self.background_ring = []
+        self.background_type = None
         self.fig = None
         self.ymax = 0
         self.rings = {}
@@ -52,9 +58,9 @@ class Circos(object):
         for i in range(1, n + 1):
             self.rings[current_ring_num + i] = []
 
-    def add_layer(self, data, value_col, kind, ring, color_dict=None, height=None, linepoints=None,
-                  size=None, alpha=None, marker=None, rotation=None, vmax=None, width=None, hue_color=None,
-                  hue_label=None, smooth=None, n_smooth=None, **kwargs):
+    def add_layer(self, data, value_col, kind, ring, color_dict=None, height=None, linepoints=None, size=None,
+                  alpha=None, marker=None, rotation=None, vmax=None, width=None, hue_color=None, hue_label=None,
+                  smooth=None, n_smooth=None, **kwargs):
         """向环中添加一个图层
 
         :param smooth:
@@ -177,17 +183,17 @@ class Circos(object):
         self.background = chr_df
         self.background_scale = ring_length  # 比例尺，将染色体距离缩放到2 * pi
 
-    def init_hg19_base_layer(self):
-        """默认基层为hg19染色体及核型
+    def init_chrom_base_layer(self, version='hg38'):
+        """默认基层为hg38染色体及核型
 
         :return:
         """
         from biokit.data import load_hg19_karyo
         karyoband_df = load_hg19_karyo()
         karyoband_df.columns = ['chr', 'start', 'end', 'name', 'type']
-        chr_order = ['chr1', 'chr2', 'chr3', 'chr4', 'chr5', 'chr6', 'chr7', 'chr8', 'chr9', 'chr10', 'chr11',
-                     'chr12', 'chr13', 'chr14', 'chr15', 'chr16', 'chr17', 'chr18', 'chr19', 'chr20', 'chr21',
-                     'chr22', 'chrX', 'chrY']
+        chr_order = ['chr1', 'chr2', 'chr3', 'chr4', 'chr5', 'chr6', 'chr7', 'chr8', 'chr9', 'chr10', 'chr11', 'chr12',
+                     'chr13', 'chr14', 'chr15', 'chr16', 'chr17', 'chr18', 'chr19', 'chr20', 'chr21', 'chr22', 'chrX',
+                     'chrY']
         # 染色体
         chr_df = []
         for chrom in chr_order:
@@ -239,9 +245,8 @@ class Circos(object):
         if 'gene' not in df.columns:  # 根据坐标判断基因
             genes = []
             for chrom, start, end in df[['chr', 'start', 'end']].to_numpy():
-                gene = gene_ref[(gene_ref['chr'] == chrom) &
-                                (gene_ref['start'] <= start) &
-                                (gene_ref['end'] >= end)].index[0]
+                gene = gene_ref[
+                    (gene_ref['chr'] == chrom) & (gene_ref['start'] <= start) & (gene_ref['end'] >= end)].index[0]
                 genes.append(gene)
         df['gene'] = genes
         df['start'] -= gene_ref.loc[df['gene']]['start']
@@ -276,8 +281,7 @@ class Circos(object):
 
         if plot_chrom:
             ax.barh(y=y, height=0.8, left=chr_df['chr_ring_start'], width=chr_df['length'],
-                    color=[color_dict[chrom] for chrom in chr_df['chr']],
-                    edgecolor='grey', alpha=alpha)
+                    color=[color_dict[chrom] for chrom in chr_df['chr']], edgecolor='grey', alpha=alpha)
 
         if not fontproperties:
             fontproperties = {}
@@ -364,8 +368,7 @@ class Circos(object):
         ax = self.ax
         for color in color_dict:
             temp_data = data[data[value] == color]
-            ax.barh(y=y, left=temp_data['start'], width=temp_data['length'], height=height,
-                    color=color_dict[color])
+            ax.barh(y=y, left=temp_data['start'], width=temp_data['length'], height=height, color=color_dict[color])
 
     def bezierplot(self, data, value, y, linewidth, linepoint, color_dict, alpha, **kwargs):
         """
@@ -445,15 +448,6 @@ class Circos(object):
     def lineplot(self, data, value_col, y, linewidth, smooth, n_smooth, color_dict, ylim=4, **kwargs):
         data['x'] = data[['start', 'end']].mean(1)
         data.sort_values(by='x', ascending=True, inplace=True)
-        # 两个区间的中点可能相同导致报错
-        dup_x = data['x'].value_counts()[data['x'].value_counts() > 1].index
-        if dup_x.size > 0:
-            for x in dup_x:
-                xdup_data = data[data['x'].isin(dup_x)]
-                xdup_data['position'] = xdup_data['chr'] + ':' + xdup_data['start'].astype(str) + '-' + xdup_data[
-                    'end'].astype(str)
-                print(', '.join(xdup_data['position'].to_list()) + ' 区间中点相同')
-
         data.drop_duplicates(subset=['x'], inplace=True)
 
         data['y'] = y + (data[value_col] - data[value_col].min()) / (data[value_col].max() - data[value_col].min())
@@ -498,8 +492,7 @@ class Circos(object):
     def annotate_rings(self, xs, ys, texts, fontsize=15):
         ax = self.ax
         for x, y, text in zip(xs, ys, texts):
-            ax.text(x=x, y=y, s=text, ha='center', va='center', rotation=self.circos_rotation(x),
-                    fontsize=fontsize)
+            ax.text(x=x, y=y, s=text, ha='center', va='center', rotation=self.circos_rotation(x), fontsize=fontsize)
 
     def barplot(self, data, value_cols, y, width=0.8, vmax=None, hue_color=None, hue_label=None, **kwargs):
         data = data.copy()
@@ -736,8 +729,9 @@ def pathway_circos(pathway_gene_dict, color_dict=None, pathway_gene_ratio=(1, 1)
 
 # %% 通路circos style2
 def pathway_circos_style2(pathway_gene_dict, center_name='Pathway', pathway_radius=0.7, pathway_node_base_size=0.03,
-                pathway_node_adapt_size=0.1, pathway_line_base_width=1, pathway_line_adapt_width=3, gene_radius=1.2,
-                cmap='Set2', ax=None, dpi=100):
+                          pathway_node_adapt_size=0.1, pathway_line_base_width=1, pathway_line_adapt_width=3,
+                          pathway_node_alpha=0.6, gene_radius=1.2, gene_node_size=0.02, gene_line_width=0.5,
+                          gene_node_face=False, cmap='Set2', ax=None, dpi=100):
     """
     环形分叉树
     :param pathway_gene_dict:
@@ -760,7 +754,7 @@ def pathway_circos_style2(pathway_gene_dict, center_name='Pathway', pathway_radi
     if not ax:
         fig, ax = plt.subplots(figsize=(12, 12), dpi=dpi)
 
-    # 
+    #
     pathway_gene_df = pd.DataFrame([(p, g) for p, gl in pathway_gene_dict.items() for g in gl],
                                    columns=['pathway', 'gene'])
 
@@ -771,7 +765,10 @@ def pathway_circos_style2(pathway_gene_dict, center_name='Pathway', pathway_radi
 
     # ---------- 计算颜色 ----------
     pathways = pathway_gene_df['pathway'].unique()
-    color_dict = dict(zip(pathways, sns.color_palette(cmap, len(pathways))))
+    if isinstance(cmap, str) or isinstance(cmap, Colormap):
+        color_dict = dict(zip(pathways, sns.color_palette(cmap, len(pathways))))
+    elif isinstance(cmap, dict):
+        color_dict = cmap
 
     # ---------- 计算中心-通路连线粗细,以及通路node大小 ----------
     pathway_gene_counts = pathway_gene_df.groupby('pathway').size()
@@ -783,15 +780,13 @@ def pathway_circos_style2(pathway_gene_dict, center_name='Pathway', pathway_radi
     ax.axis('off')
 
     # 中心点
-    ax.add_patch(mpatches.Circle((0, 0), 0.20, color="#f7cccc", alpha=0.6))
-    ax.text(0, 0, center_name, ha='center', va='center',
-            fontsize=20, fontweight='bold', color="#D62728")
+    ax.add_patch(mpatches.Circle((0, 0), 0.20, color="#f7cccc", alpha=pathway_node_alpha))
+    ax.text(0, 0, center_name, ha='center', va='center', fontsize=20, fontweight='bold', color="#D62728")
 
     # 通路节点和基因节点
     control_point_radius = (pathway_radius + gene_radius) / 2
     for pathway in pathways:
         pathway_df = pathway_gene_df[pathway_gene_df['pathway'] == pathway]
-
         # 通路节点
         pathway_angle = math.radians(pathway_df['angle'].mean())
         pathway_node_x, pathway_node_y = pathway_radius * math.cos(pathway_angle), pathway_radius * math.sin(
@@ -799,12 +794,16 @@ def pathway_circos_style2(pathway_gene_dict, center_name='Pathway', pathway_radi
         pathway_node_radius = pathway_node_base_size + pathway_node_adapt_size * pathway_gene_counts[pathway]
         pathway_line_width = pathway_line_base_width + pathway_line_adapt_width * pathway_gene_counts[pathway]
         ax.add_patch(
-            mpatches.Circle((pathway_node_x, pathway_node_y), radius=pathway_node_radius,
-                            color=color_dict[pathway], alpha=0.6))
-        ax.text(pathway_node_x, pathway_node_y, pathway, ha='center', va='center',
-                fontsize=16, fontweight='bold', color=color_dict[pathway])
-        ax.plot([0, pathway_node_x], [0, pathway_node_y], color=color_dict[pathway],
-                linewidth=pathway_line_width, alpha=0.8)
+            mpatches.Circle((pathway_node_x, pathway_node_y), radius=pathway_node_radius, color=color_dict[pathway],
+                            alpha=0.6))
+        # ax.text(pathway_node_x, pathway_node_y, pathway, ha='center', va='center', fontsize=16, fontweight='bold', color=color_dict[pathway])
+        pathway_angle_degrees = math.degrees(pathway_angle)
+        rotation = pathway_angle_degrees + 180 if 90 <= pathway_angle_degrees <= 270 else pathway_angle_degrees
+        text_ha = 'right' if 90 <= pathway_angle_degrees <= 270 else 'left'
+        ax.text(pathway_node_x, pathway_node_y, pathway, ha=text_ha, va='center', fontsize=16, fontweight='bold',
+                color='k', rotation=rotation, rotation_mode='anchor')
+        ax.plot([0, pathway_node_x], [0, pathway_node_y], color=color_dict[pathway], linewidth=pathway_line_width,
+                alpha=0.8)
 
         # 贝塞尔曲线控制点1
         control_point1 = (control_point_radius * math.cos(pathway_angle),
@@ -821,15 +820,177 @@ def pathway_circos_style2(pathway_gene_dict, center_name='Pathway', pathway_radi
             # 曲线坐标
             ctrl_pts = np.array([[pathway_node_x, pathway_node_y], control_point1, control_point2, [gene_x, gene_y]])
             line = bezier_curve_S(ctrl_pts)
-            ax.plot(line[:, 0], line[:, 1], color=color_dict[pathway], linewidth=1.5, alpha=0.8)
+            ax.plot(line[:, 0], line[:, 1], color=color_dict[pathway], linewidth=gene_line_width, alpha=0.8)
 
             # 基因文本
             gene_angle = row['angle']
-            ratation = gene_angle + 180 if 90 <= gene_angle <= 270 else gene_angle
+            rotation = gene_angle + 180 if 90 <= gene_angle <= 270 else gene_angle
             text_ha = 'right' if 90 <= gene_angle <= 270 else 'left'
-            ax.text(gene_x, gene_y, row['gene'], ha=text_ha, va='center',
-                    fontsize=10, color=color_dict[pathway],
-                    rotation=ratation, rotation_mode='anchor')
+
+            if gene_node_face:
+                ax.text(gene_x, gene_y, row['gene'], ha=text_ha, va='center', fontsize=12, color='k', rotation=rotation,
+                        rotation_mode='anchor')
+                ax.add_patch(
+                    mpatches.Circle((gene_x, gene_y), radius=gene_node_size, color=color_dict[pathway], alpha=0.6))
+            else:
+                ax.text(gene_x, gene_y, row['gene'], ha=text_ha, va='center', fontsize=12, color=color_dict[pathway],
+                        rotation=rotation, rotation_mode='anchor')
 
     ax.set_title("Pathway–Gene Network (Curved Line Links)", fontsize=22, fontweight='bold')
     return ax
+
+
+def lr_circos(network: pd.DataFrame, cmap='Spectral_r', min_alpha=0.3, max_alpha=0.9, norm=None, figsize=(10, 10)):
+    """
+    绘制受体-配体互作强度的 Circos 环图
+    - 内圈贝塞尔线颜色：根据 value 连续映射
+    - 外圈基因带颜色：根据平均互作强度连续映射
+    """
+    # === 1. 统计每个基因的总连接数 ===
+    all_genes = pd.unique(network[['ligand', 'receptor']].values.ravel())
+    link_counts = (pd.concat([network['ligand'], network['receptor']]).value_counts().reindex(all_genes, fill_value=1))
+    base_df = pd.DataFrame({'chr': all_genes, 'start': 0, 'end': link_counts.values})
+
+    # === 2. 构建全局唯一坐标 ===
+    slot_map = {g: iter(range(int(n))) for g, n in zip(base_df['chr'], base_df['end'])}
+    records = []
+    for _, row in network.iterrows():
+        lig, rec, val = row['ligand'], row['receptor'], row['value']
+        lig_slot = next(slot_map[lig])
+        rec_slot = next(slot_map[rec])
+        records.append({'chr1': lig, 'start1': lig_slot, 'end1': lig_slot + 1, 'chr2': rec, 'start2': rec_slot,
+                        'end2': rec_slot + 1, 'interaction': f"{lig}_{rec}", 'value': val})
+    df = pd.DataFrame(records)
+
+    # === 3. 初始化 Circos ===
+    circ = Circos(bottom=6, layer_spacing=0.5)
+    circ.set_base(base_df, interval_proportion=0.1, keep_space=0)
+
+    # === 4. 连续颜色映射 (互作强度) ===
+    cmap_func = cm.get_cmap(cmap)
+    if not norm:
+        norm = plt.Normalize(vmin=df['value'].min(), vmax=df['value'].max())
+    df['color'] = df['value'].apply(lambda x: to_hex(cmap_func(norm(x))))
+    df['alpha'] = df['value'].apply(lambda x: min_alpha + (max_alpha - min_alpha) * norm(x))
+    color_dict = dict(zip(df['interaction'], df['color']))
+
+    # === 5. 每个基因的平均互作强度颜色 ===
+    gene_values = []
+    for g in all_genes:
+        subset = df[(df['chr1'] == g) | (df['chr2'] == g)]
+        mean_val = subset['value'].mean() if not subset.empty else np.nan
+        gene_values.append((g, mean_val))
+    gene_values = pd.DataFrame(gene_values, columns=['chr', 'mean_value'])
+    if gene_values['mean_value'].nunique() == 1:
+        gene_values['norm'] = 0.5
+    else:
+        gene_values['norm'] = (gene_values['mean_value'] - gene_values['mean_value'].min()) / (
+                gene_values['mean_value'].max() - gene_values['mean_value'].min())
+    gene_values['color'] = gene_values['norm'].apply(lambda v: to_hex(cmap_func(v)))
+    gene_color_dict = dict(zip(gene_values['chr'], gene_values['color']))
+
+    # === 6. 绘制外圈基因带 ===
+    circ.plot_base(plot_band=False, text_chrom=True, color_dict=gene_color_dict,
+                   fontproperties={'fontsize': 12, 'fontweight': 'bold', 'rotation': 0})
+
+    # === 7. 添加贝塞尔互作层 ===
+    ring = circ.add_ring()
+    circ.add_layer(df, value_col='interaction', kind='bezierarea', ring=ring, color_dict=color_dict, size=1,
+                   linepoints=80, alpha=0.7)
+
+    # === 8. 绘制 ===
+    circ.draw()
+
+    # === 9. 添加颜色条 ===
+    ax = circ.ax
+    fig = ax.figure
+    sm = plt.cm.ScalarMappable(cmap=cmap_func, norm=norm)
+    pos = ax.get_position()
+    cax = fig.add_axes([pos.x0 - pos.width * 0.15, pos.y0 + 0.25 * pos.height, pos.width * 0.03, pos.height * 0.5])
+    cbar = plt.colorbar(sm, cax=cax)
+    cbar.set_label('Interaction Strength', fontsize=10)
+
+    # === 10. 标题 ===
+    ax.set_title('Ligand–Receptor Interaction Network', fontsize=20, y=1.1, fontweight='bold')
+    return circ
+
+
+# %%
+def lr_circos(network: pd.DataFrame, cmap='Set2', min_alpha=0.3, max_alpha=0.9, ligand_cmaps=None, ligand_colors=None,
+              norm=None, figsize=(10, 10)):
+    if 'p' not in network.columns:
+        network['p'] = 1.0  # 如果没有p值列，默认全部为1，表示不显著
+    all_genes = pd.unique(network[['ligand', 'receptor']].values.ravel())
+    ligands = network['ligand'].drop_duplicates().tolist()
+    receptors = network['receptor'].drop_duplicates().tolist()
+    link_counts = (pd.concat([network['ligand'], network['receptor']]).value_counts().reindex(all_genes, fill_value=1))
+    base_df = pd.DataFrame({'chr': all_genes, 'start': 0, 'end': link_counts.values})
+    slot_map = {g: iter(range(int(n))) for g, n in zip(base_df['chr'], base_df['end'])}
+    records = []
+    for _, row in network.iterrows():
+        lig, rec, val = row['ligand'], row['receptor'], row['value']
+        lig_slot = next(slot_map[lig])
+        rec_slot = next(slot_map[rec])
+        records.append({'chr1': lig, 'start1': lig_slot, 'end1': lig_slot + 1, 'chr2': rec, 'start2': rec_slot,
+                        'end2': rec_slot + 1, 'interaction': f"{lig}_{rec}", 'ligand': lig, 'receptor': rec,
+                        'value': val})
+    df = pd.DataFrame(records)
+    circos = Circos(bottom=6, layer_spacing=0.5)
+    circos.set_base(base_df, interval_proportion=0.1, keep_space=0)
+    if not ligand_cmaps:
+        ligand_colors = dict(zip(ligands, sns.color_palette(cmap, len(ligands)).as_hex()))
+        ligand_cmaps = {lig: LinearSegmentedColormap.from_list(f'{lig}_cmap', ['#FFFFFF', ligand_colors[lig]]) for lig
+                        in ligands}
+
+    gamma = 3
+
+    def enhance_contrast(x):
+        x = np.clip(x, 0, 1)
+        return x ** gamma
+
+    def ligand_norm(s, q=0.90):
+        s = pd.to_numeric(s, errors='coerce')
+        vmin = s.min()
+        vmax = s.quantile(q)
+        if pd.isna(vmin) or pd.isna(vmax) or vmax <= vmin:
+            return pd.Series(np.repeat(0.7, len(s)), index=s.index)
+        return ((s - vmin) / (vmax - vmin)).clip(0, 1)
+
+    df['norm_val'] = df.groupby('receptor')['value'].transform(ligand_norm)
+    df['enhanced_val'] = df['norm_val'].apply(enhance_contrast)
+    # df['color'] = [to_hex(ligand_cmaps[lig](val)) for lig, val in df[['ligand', 'enhanced_val']].to_numpy()]
+    df['color'] = [to_hex(ligand_cmaps[lig](val)) for lig, val in df[['ligand', 'enhanced_val']].to_numpy()]
+    df['alpha'] = df['norm_val'].apply(lambda x: min_alpha + (max_alpha - min_alpha) * x)
+
+    color_dict = dict(zip(df['interaction'], df['color']))
+    gene_color_dict = {g: '#D9D9D9' for g in all_genes}
+    gene_color_dict.update(ligand_colors)
+    circos.plot_base(plot_band=False, text_chrom=True, color_dict=gene_color_dict,
+                     fontproperties={'fontsize': 12, 'fontweight': 'bold', 'rotation': 0})
+    ring = circos.add_ring()
+    layer = circos.add_layer(df, value_col='interaction', kind='bezierarea', ring=ring, color_dict=color_dict, size=1,
+                             linepoints=80, alpha=0.7)
+    layer['data'].sort_values('value', inplace=True)  # 先画小的，后画大的，避免高亮的弧被覆盖
+
+    # 标注p值
+    p_map_df = network[['ligand', 'receptor', 'p']].copy()
+    p_map_df = p_map_df.rename(columns={'ligand': 'chr1', 'receptor': 'chr2'})
+    layer['data'] = layer['data'].merge(p_map_df, on=['chr1', 'chr2'], how='left')
+    y = circos.bottom + len(circos.rings) - 0.5
+    ax = circos.ax
+    # for p, s1, e1, s2, e2 in layer['data'][['p', 'start1', 'end1', 'start2', 'end2']].itertuples(index=False):
+    #     if p > 0.05:
+    #         continue
+    #     # ax.barh(y=y, height=0.5, left=x1, width=x2 - x1, color='red', alpha=0.8)
+    #     l1 = e1 - s1
+    #     ax.text((s1 + e1) / 2, y, '*' if p < 0.05 else '', ha='center', va='center', fontsize=12, color='k',
+    #             fontweight='bold', rotation=360 * (s1 + l1 / 2) / (2 * pi) - 90, rotation_mode='anchor')
+    #     l2 = e2 - s2
+    #     ax.text((s2 + e2) / 2, y, '*' if p < 0.05 else '', ha='center', va='center', fontsize=12, color='k',
+    #             fontweight='bold', rotation=360 * (s2 + l2 / 2) / (2 * pi) - 90, rotation_mode='anchor')
+    circos.draw()
+    handles = [plt.Line2D([0], [0], color=ligand_colors[lig], lw=6, label=lig) for lig in ligands]
+    ax.legend(handles=handles, title='Ligand', loc='center left', bbox_to_anchor=(1.05, 0.5), frameon=False,
+              fontsize=10, title_fontsize=11)
+    ax.set_title('Ligand–Receptor Interaction Network', fontsize=20, y=1.1, fontweight='bold')
+    return circos, df, ligand_colors, ligand_cmaps

@@ -262,7 +262,9 @@ def kobas_dotplot(df, column='Ratio', title='', color='-log10 Padj', cutoff=0.05
 
 
 def metascape_dotplot(df, x='Ratio', color='-log10(padj)', size='Ratio', cmap='viridis', top_term=10, ax=None,
-                      vmin=None, vmax=None, title='Metascape Pathway Enrichment'):
+                      vmin=None, vmax=None, title='Metascape Pathway Enrichment', ax_left=0.45):
+    df = df.copy()
+    df = df.sort_values(by=x, ascending=True)
     if top_term:
         df = df.iloc[:top_term].copy()
     if not ax:
@@ -274,6 +276,7 @@ def metascape_dotplot(df, x='Ratio', color='-log10(padj)', size='Ratio', cmap='v
     if isinstance(cmap, str):
         cmap = plt.get_cmap(cmap)
 
+    print(df.shape)
     # 标准化气泡大小
     size_name = size
     df['size'] = df[size]
@@ -294,7 +297,7 @@ def metascape_dotplot(df, x='Ratio', color='-log10(padj)', size='Ratio', cmap='v
         ax.scatter(x=row[x], y=i, s=row['size'], c=row['color'], edgecolor='grey', linewidth=0.5, zorder=3)
 
     # ax
-    ax_left, ax_bottom, ax_width, ax_height = 0.45, 1 / fig_height, 0.4, (fig_height - 2) / fig_height
+    ax_left, ax_bottom, ax_width, ax_height = ax_left, 1 / fig_height, 0.85 - ax_left, (fig_height - 2) / fig_height
     ax.set_yticks(range(df.shape[0]))
     ax.set_yticklabels(df['PathwayName'], fontsize=16)
     ax.set_position([ax_left, ax_bottom, ax_width, ax_height])
@@ -319,6 +322,9 @@ def metascape_dotplot(df, x='Ratio', color='-log10(padj)', size='Ratio', cmap='v
     sm.set_array([])
     fig.colorbar(sm, cax=cax)
     cax.set_title(color, fontsize=16)
+
+    ax.set_ylim(0.5, df.shape[0] - 0.5)
+
 
     return fig, {'main': ax, 'legend': legend_ax, 'cbar': cax}
 
@@ -371,6 +377,7 @@ def gseapy_dotplot(df, x='Gene Ratio', color='-log10 padj', size='Gene Ratio', c
     ax.set_yticks(range(1, df.shape[0] + 1))
     ax.set_yticklabels(df.index[::-1])
     ax.set_xlabel(xlabel)
+    ax.set_ylim(0.5, df.shape[0] + 0.5)
     # 设置网格
     ax.grid()
     return ax

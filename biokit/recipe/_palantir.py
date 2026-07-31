@@ -1,6 +1,7 @@
 # coding='utf-8'
 # Author:Tang Hongzhen
 # Email: tanghongzhen34@gmail.com
+
 import math
 
 import numpy as np
@@ -32,7 +33,6 @@ def distance_in_direction(point1, point2, angle_degrees):
 def farthest_point_at_angle(points, angle_degrees):
     # 计算中心点
     center = [sum([point[0] for point in points]) / len(points), sum([point[1] for point in points]) / len(points)]
-
     if angle_degrees is not None:  # 有角度则计算距离中心点最远的点
         max_distance = 0
         farthest_point = None
@@ -121,3 +121,8 @@ def plot_gene_trends(data, gene=None, branches=None, gene_trend_key="gene_trends
         ax.plot(trends.columns.astype(float), trends.loc[gene, :], color=color_dict[branch], label=branch, )
         ax.set_xticks([0, 1])
         ax.set_title(gene)
+
+
+def palantir_recipe(adata):
+    """Generate a color palette with n distinct colors using seaborn's color palettes."""
+    pass

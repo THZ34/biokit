@@ -2,7 +2,7 @@ from .baseplot import cumulative_bar, cumulative_barh
 from .complexplot import parallel_categories
 
 from ._box import testbox
-from ._circos import Circos
+from ._circos import Circos, pathway_circos, pathway_circos_style2, lr_circos
 from ._colors import scicolors
 from ._colors import show_scicolors
 from ._colors import scicmap

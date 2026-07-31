@@ -2,6 +2,8 @@
 # Author:Tang Hongzhen
 # Email: tanghongzhen34@gmail.com
 import numpy as np
+import pandas as pd
+import seaborn as sns
 from matplotlib import pyplot as plt
 
 
@@ -10,14 +12,13 @@ def radarplot(radar_df, groupby, value, groups=None, color_dict=None, hue=None, 
     if not groups:
         groups = radar_df[groupby].unique()
     if not color_dict:
-        import seaborn as sns
         color_dict = dict(zip(groups, sns.color_palette('Set1', n_colors=len(groups))))
     if hue:
         if not hue_color_dict:
             hue_color_dict = dict(
                 zip(radar_df[hue].unique(), sns.color_palette('Set1', n_colors=len(radar_df[hue].unique()))))
     if not ax:
-        fig, ax = plt.subplots(subplot_kw=dict(polar=True))
+        fig, ax = plt.subplots(subplot_kw=dict(polar=True), figsize=(8, 6))
 
     if not hue:
         radarplot_base(radar_df, groupby, value, groups=groups, color_dict=color_dict, ax=ax)
@@ -43,20 +44,27 @@ def radarplot_base(radar_df, groupby, value, groups=None, figsize=None, color_di
     if not ax:
         fig, ax = plt.subplots(figsize=figsize, subplot_kw=dict(polar=True))
 
+    # 筛选并按 groups 顺序排序
     radar_df = radar_df[radar_df[groupby].isin(groups)]
+    radar_df[groupby] = pd.Categorical(radar_df[groupby], categories=groups, ordered=True)
+    radar_df = radar_df.sort_values(groupby)
+
     labels = radar_df[groupby].to_numpy()
     stats = radar_df[value].to_numpy()
+
     # 计算角度
     angles = np.linspace(0, 2 * np.pi, len(labels), endpoint=False).tolist()
     # 闭合图形
     stats = np.concatenate((stats, [stats[0]]))
     angles += angles[:1]
+
     # 绘图
     ax.fill(angles, stats, color=facecolor, alpha=0.25)
     ax.plot(angles, stats, color=facecolor, linewidth=2, label=label)
     ax.scatter(angles[:-1], stats[:-1], color=[color_dict[i] for i in labels], s=50, zorder=2)
+
     ax.set_xticks(angles[:-1])
-    ax.set_xticklabels(labels)
-    ax.grid(color='lightgrey', linestyle='-', linewidth=2)
+    ax.set_xticklabels(labels, zorder=100)
+    ax.grid(color='lightgrey', linestyle='-', linewidth=2, zorder=1)
     ax.spines['polar'].set_visible(False)
     return ax

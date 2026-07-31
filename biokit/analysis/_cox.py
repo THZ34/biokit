@@ -3,6 +3,7 @@ import warnings
 
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
 from lifelines import CoxPHFitter
 from lifelines.exceptions import ConvergenceError
 from statsmodels.stats.outliers_influence import variance_inflation_factor
@@ -39,7 +40,7 @@ def cox(df, time='time', status='status', variables=None, mod='single', drop_by_
     discrete_index = df.dtypes[(df.dtypes == object) | (df.dtypes == bool)].index.intersection(raw_variables)
     continuous_df = df[continuous_index]
     continuous_df.columns = [continuous_index, continuous_index]
-
+    print(f'连续变量: {len(list(continuous_index))}，离散变量: {len(list(discrete_index))}')
     # 离散变量哑编码
     discrete_df = pd.DataFrame()
     if not ref_dict:
@@ -56,18 +57,9 @@ def cox(df, time='time', status='status', variables=None, mod='single', drop_by_
                 groupdf_columns[1].append(group)
             group_df.columns = groupdf_columns
             discrete_df = pd.concat([discrete_df, group_df], axis=1)
-
             multi_ref_variables.append((groupby, ref_dict.get(groupby, groups[0])))
 
     cox_input = pd.concat([sur_df, continuous_df, discrete_df], axis=1)
-    corr_df = cox_input.corr()
-
-    # 找出重复列
-    factor_df = cox_input.drop([time, status], axis=1).copy()
-    dup_cols = factor_df.T[factor_df.T.duplicated()].index
-    dup_col_pair = dict([(i, corr_df[corr_df[i] == 1].drop(i).index[0]) for i in dup_cols])
-    dup_refs = dup_cols.intersection(multi_ref_variables)
-
     # 过滤0方差特征
     # variance_zero_vars = df.columns[df.std() == 0]
     # df.drop(variance_zero_vars, axis=1, inplace=True)
@@ -78,7 +70,8 @@ def cox(df, time='time', status='status', variables=None, mod='single', drop_by_
     if mod == 'single':
         variables = cox_input.columns.drop(multi_ref_variables).drop([time, status])
         single_cox_result = []
-        for var in variables:
+        print(len(variables))
+        for var in tqdm(variables):
             try:
                 tmp_df = cox_input[[time, status, var]]
                 cph.fit(tmp_df, duration_col=time, event_col=status)
@@ -91,6 +84,12 @@ def cox(df, time='time', status='status', variables=None, mod='single', drop_by_
         cox_result.index = variables
 
     elif mod == 'multiple':
+        # 找出高相关的列
+        corr_df = cox_input.corr()
+        factor_df = cox_input.drop([time, status], axis=1).copy()
+        dup_cols = factor_df.T[factor_df.T.duplicated()].index
+        dup_col_pair = dict([(i, corr_df[corr_df[i] == 1].drop(i).index[0]) for i in dup_cols])
+        dup_refs = dup_cols.intersection(multi_ref_variables)
         # 去掉重复列和离散变量的参考值
         for dup_col in dup_cols:
             if dup_col in multi_ref_variables:
@@ -167,4 +166,4 @@ def cox(df, time='time', status='status', variables=None, mod='single', drop_by_
             n_samples.append(df.shape[0])
     cox_result['n_sample'] = n_samples
 
-    return cox_result
+    return cox_result, cox_input, cph

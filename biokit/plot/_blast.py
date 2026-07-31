@@ -120,3 +120,4 @@ def plot_blast_result(blast_result, query_df, subject_seq, subject_name, full_le
         # plt.show()
     plt.subplots_adjust(0, 0, 1, 1, 0, 0)
     return fig, ax
+

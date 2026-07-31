@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from adjustText import adjust_text
-from matplotlib.colors import to_rgb, to_hex
+from matplotlib.colors import to_hex
+from matplotlib.colors import to_rgb
 
 
 def get_text_color(background_color):
@@ -17,19 +18,22 @@ def get_text_color(background_color):
         return to_hex((1, 1, 1))  # 白色文本
 
 
-def volcano_plot(df, x='logfoldchanges', y='-log10(padj)', color=None, color_dict=None, anno=None, ax=None, control_case_name=None,
-                 textadjust=True):
+def volcano_plot(df, x='logfoldchanges', y='-log10(padj)', color='change', size=None, alpha=None, color_dict=None,
+                 annot=None, ax=None, control_case_name=None, textadjust=True, textfacecolor=False, ):
     """
 
-    :param textadjust:
-    :param control_case_name:
-    :param anno:
     :param df:
     :param x:
     :param y:
     :param color:
+    :param size:
+    :param alpha:
     :param color_dict:
+    :param annot:
     :param ax:
+    :param control_case_name:
+    :param textadjust:
+    :param textfacecolor:
     :return:
     """
     df = df.copy()
@@ -45,32 +49,49 @@ def volcano_plot(df, x='logfoldchanges', y='-log10(padj)', color=None, color_dic
     if not ax:
         fig, ax = plt.subplots(figsize=(6, 5))
 
-    if anno is None:
-        anno = 20
-    if type(anno) == float:
-        anno = df[df[color] != 'other'].sort_values(by=y, ascending=False).index[:int(df.shape[0] * anno)]
-    elif type(anno) == int:
-        anno = df[df[color] != 'other'].sort_values(by=y, ascending=False).index[:anno]
-    elif type(anno) == list:
-        anno = sorted(list(set(anno) & set(df.index)))
+    if not size:
+        df['size'] = 1
+    elif isinstance(size, int):
+        df['size'] = size
+
+    if not alpha:
+        df['alpha'] = 1
+    elif isinstance(alpha, float):
+        df['alpha'] = alpha
+
+    if annot is None:
+        annot = 20
+    if isinstance(annot, float):
+        annot = df[df[color] != 'other'].sort_values(by=y, ascending=False).index[:int(df.shape[0] * annot)]
+    elif isinstance(annot, int):
+        annot = df[df[color] != 'other'].sort_values(by=y, ascending=False).index[:annot]
+    elif isinstance(annot, list):
+        annot = sorted(list(set(annot) & set(df.index)))
+
     if not control_case_name:
-        control_case_name = ('control', 'case')
+        control_case_name = ('Control', 'Case')
     controlname, casename = control_case_name
 
     # 画点
     for key in color_dict:
         temp_df = df[df[color] == key]
-        ax.scatter(x=temp_df[x], y=temp_df[y], s=5, c=color_dict[key])
+        if temp_df.empty:
+            continue
+        ax.scatter(x=temp_df[x], y=temp_df[y], s=temp_df['size'], c=color_dict[key], alpha=temp_df['alpha'], )
 
     # 注释基因
     texts = []
-    for gene in anno:
-        texts.append(ax.text(x=df.loc[gene][x], y=df.loc[gene][y], s=gene, fontsize=8,
-                             bbox={'facecolor': color_dict[df.loc[gene][color]], 'alpha': 0.3, 'pad': 2,
-                                   'linewidth': 0}, ha='left' if df.loc[gene][x] > 0 else 'right'))
+    for gene in annot:
+        if textfacecolor:
+            texts.append(ax.text(x=df.loc[gene][x], y=df.loc[gene][y], s=gene, fontsize=8,
+                                 bbox={'facecolor': color_dict[df.loc[gene][color]], 'alpha': 0.3, 'pad': 2,
+                                       'linewidth': 0}, ha='left' if df.loc[gene][x] > 0 else 'right'))
+        else:
+            texts.append(ax.text(x=df.loc[gene][x], y=df.loc[gene][y], s=gene, fontsize=8,
+                                 ha='left' if df.loc[gene][x] > 0 else 'right'))
+
     if textadjust:
         adjust_text(texts, only_move={'points': 'y', 'texts': 'y'})
-    print(texts, anno)
 
     # case control 箭头
     xmax = df[x].abs().max()

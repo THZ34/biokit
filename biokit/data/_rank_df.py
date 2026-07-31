@@ -15,7 +15,7 @@ def get_rank_df(adata, group, key='rank_genes_groups', logfc_cutoff=1, pval_cuto
     :return: rank_df
     """
     rank_df = sc.get.rank_genes_groups_df(adata, group=group, key=key)
-    rank_df.index = rank_df['names']
+    rank_df.index = rank_df['names'].values
     if fix_inf:
         rank_df.loc[rank_df['pvals'] == 0, 'pvals'] = rank_df.loc[rank_df['pvals'] != 0, 'pvals'].min()
         rank_df.loc[rank_df['pvals_adj'] == 0, 'pvals_adj'] = rank_df.loc[rank_df['pvals_adj'] != 0, 'pvals_adj'].min()

@@ -3,10 +3,11 @@
 # Email: tanghongzhen34@gmail.com
 # %%
 import os
+from biokit.data import load_metascape
 
 
 # %%
-def pathway_enrichment(genes, prefix, outputdir, license=None):
+def pathway_enrichment(genes, prefix, outputdir, license=None, run=False):
     os.makedirs(outputdir, exist_ok=True)
     with open(f'{outputdir}/{prefix}.txt', 'w') as f:
         f.write('\n'.join(genes))
@@ -17,6 +18,8 @@ def pathway_enrichment(genes, prefix, outputdir, license=None):
                f'-v "{license}":/workdir/license '
                f'-w /workdir metadocker8/msbio2 python /msbio/mylib/ms/msbio2.py "/workdir/{outputdir}/{prefix}.txt" '
                f'-o "/workdir/{outputdir}/{prefix}" -t Symbol -s -u --license /workdir/license')
-    return command
-
-
+    if run:
+        os.system(command)
+        return load_metascape(f'{outputdir}/{prefix}/metascape_result.xlsx')
+    else:
+        return command

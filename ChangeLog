@@ -1,6 +1,83 @@
 CHANGES
 =======
 
+* Change
+* 新增: 共定位数据整理和共定位作图
+* 修改: 修复metascape\_dotplot图例大小与数值不匹配的问题
+* Change
+* Change
+* Change
+* 新增: 批量修改conda环境中的matplotlibrc, 设置字体库路径
+* Change
+* 删除
+* 修改: 将biokit-cli加入环境变量
+* 删除
+* 新增: biokit命令行脚本
+* Change
+* 修改: 修改默认参数
+* Change
+* Change
+* 新增: 使用plantir进行拟时序分析的pipeline
+* 修改：新增ci\_show参数用于控制是否展示95ci置信区间
+* 修改：新增vmax,vmin参数用于控制颜色
+* Change
+* Change
+* Change
+* Change
+* 新增：text\_similarity，匹配两个列表中相似度最高的文本
+* Change
+* Change
+* 修改：新增注释比例
+* 修改：新增license路径参数
+* Change
+* Change
+* Change
+* Change
+* 新增：新增grid\_average函数，用于对二维空间进行均匀分块并计算平均数
+* Change
+* 修改: 通过判断箭头颜色来确定其中的字的颜色
+* 修改: 增加粒细胞marker
+* 修改: 雷达图增加分组选项, 可以自行绘制分组雷达图
+* 修改: get\_gsm\_sampleinfo返回的df中会包含gsmid
+* 修改: 优化metascape\_dotplot
+* 修改: 颜色全部改成hex格式, 新增两组颜色(biomega1, biomega2)
+* Change
+* 新增: 新增binned\_value函数用于将值分类到指定区间
+* Change
+* 修改: 新增get\_text\_color用于判断箭头中文本的颜色
+* 新增: 新增get\_rank\_df用于获取adata的rank\_df
+* 修改: 重写metascape\_dotplot
+* 修改: 修改箭头上的标注，去掉high-exp in
+* Changes
+* Changes
+* 新增：等高线图
+* 新增：雷达图
+* 新增：parallel\_categories画图
+* 新增：载入metascape结果
+* 修改: 修复kaplan-meier计算P值的问题
+* 修改: 如果只有1行1列, 返回ax而不是axes
+* 修改: 修改文件的编码, 添加colorbar
+* 新增: 生成互补色
+* 移动：p2text\_func移动到data\_convert下
+* 新增：bezier S形曲线
+* 移动：cumulative\_bar移动到baseplot下
+* 移动：cumulative\_bar移动到baseplot下
+* Change
+* 修改：增加textadjust参数用于控制是否使用adjust\_text自动调节文本间隔
+* 修改：简化读写
+* 新增：增加gseapy\_dotplot
+* 新增：增加pathway\_circos
+* 修改: 添加violin
+* 修改: 改成utf-8编码
+* 修改: testbox新增violin
+* Change
+* 新增：检查本地文件，避免重复下载
+* Change
+* Change
+* 新增：根据ax大小以及其他参数计算并生成fig
+* Change
+* 新增：神经网络图
+* 修改: fit\_model分为regression和classifier, 分别使用不同的方法评估性能
 * 修改: feature\_ranking的在将model传入rfe时使用copy避免对原对象产生影响
 * 修改: feature\_ranking的models直接传入模型而不是模型的类
 * 修改：优化get\_gsm\_sampleinfo, 自动拆分characteristics

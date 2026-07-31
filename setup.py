@@ -10,6 +10,4 @@ setup(
             "biokit-cli = biokit.cli:main"  # 入口指向 cli.py 的 main 函数
         ]
     },
-    setup_requires=['pbr'],
-    pbr=True
 )

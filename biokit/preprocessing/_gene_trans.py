@@ -42,7 +42,7 @@ def download_ensembl(versions=None, outdir='ref/ensembl'):
 
 
 def get_genename_df(versions, ref_path, database='gencode', outdir='ref'):
-    os.makedirs(f'{outdir}/{database}',exist_ok=True)
+    os.makedirs(f'{outdir}/{database}', exist_ok=True)
     genename_df = {}
     genetype_df = {}
     geneid_df = {}
@@ -62,7 +62,7 @@ def get_genename_df(versions, ref_path, database='gencode', outdir='ref'):
                 except IndexError:
                     continue
                 genetype = re.findall('gene_type "(.*?)";', line)[0] if database == 'gencode' else \
-                re.findall('gene_biotype "(.*?)";', line)[0]
+                    re.findall('gene_biotype "(.*?)";', line)[0]
                 geneid = re.findall('gene_id "(.*?)";', line)[0]
                 version_genename[genename] = 1
                 version_genetype[genename] = genetype
@@ -156,7 +156,7 @@ def get_ensembl_genename_df(versions, ref_path, outpath='ref/ensembl'):
 
 
 def detect_version(genes, genename_df):
-    genes = [i for i in genes if i in genename_df.index]
+    genes = genename_df.index.intersection(genes)
     genesum = genename_df.loc[genes].sum()
     version = genesum[genesum == genesum.max()].index[0]
     return version, genesum
@@ -172,8 +172,16 @@ def detect_version(genes, genename_df):
 #     gene_trans_dict = {gene: to_version_dict.get(from_version_dict[gene], gene) for gene in genes}
 #     gene_trans_dict = {key: value for key, value in gene_trans_dict.items() if (key != value)}
 #     return gene_trans_dict
+
+# def genename_version_convert(geneid_df, from_version, to_version):
+#     gene_trans_dict = geneid_df.set_index(from_version)[to_version].to_dict()
+#     gene_trans_dict = {key: value for key, value in gene_trans_dict.items() if (key != value)}
+#     gene_trans_dict = {key: value for key, value in gene_trans_dict.items() if not pd.isna(value)}
+#     return gene_trans_dict
+
 def genename_version_convert(geneid_df, from_version, to_version):
-    gene_trans_dict = geneid_df.set_index(from_version)[to_version].to_dict()
-    gene_trans_dict = {key: value for key, value in gene_trans_dict.items() if (key != value)}
-    gene_trans_dict = {key: value for key, value in gene_trans_dict.items() if not pd.isna(value)}
-    return gene_trans_dict
+    """通过转录本ID在不同版本之间转换基因名"""
+    from_dict = dict(zip(geneid_df[from_version], geneid_df.index))
+    to_dict = dict(zip(geneid_df[to_version], geneid_df.index))
+    convert_dict = {value: to_dict.get(key, value) for key, value in from_dict.items()}
+    return convert_dict

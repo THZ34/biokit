@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 from itertools import combinations
 
-# %% 分类颜色
+# %% 鍒嗙被棰滆壊
 color_style = {'style1': ['#000000', '#13213c', '#fca311', '#e5e5e5'],
                'style2': ['#f4f1de', '#df7a5e', '#3c405b', '#82b29a', '#f2cc8e'],
                'style3': ['#264653', '#2a9d8e', '#e9c46b', '#f3a261', '#e66f51'],

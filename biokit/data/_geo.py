@@ -7,13 +7,10 @@ from threading import Thread
 import shutil
 import subprocess
 import tempfile
-import requests
 import re
 import time
-import GEOparse
 import gzip
 import pandas as pd
-from bs4 import BeautifulSoup
 import os
 
 
@@ -45,6 +42,7 @@ def _parse_characteristics(lines):
 
 
 def get_gse_sampleinfo(gseid, dest='dataset', save_tsv=True):
+    import requests
     os.makedirs(f"{dest}/{gseid}", exist_ok=True)
     url = _soft_url(gseid)
     gz_path = f"{dest}/{gseid}/{gseid}_family.soft.gz"
@@ -132,6 +130,8 @@ def get_gse_sampleinfo(gseid, dest='dataset', save_tsv=True):
 
 
 def get_gsm_sampleinfo(gsmid, sampleinfo_dict):
+    import requests
+    from bs4 import BeautifulSoup
     soup = BeautifulSoup(requests.get(f'https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc={gsmid}', timeout=5).text,
                          'html.parser')
     tr_tags = soup.find_all('tr', valign='top')
@@ -161,6 +161,7 @@ def download_gse(gseid, output=None, max_workers=4):
     :param max_workers: 并发下载任务数
     :return:
     """
+    from bs4 import BeautifulSoup
     url = f'https://ftp.ncbi.nlm.nih.gov/geo/series/{gseid[:-3]}nnn/{gseid}/suppl'
     downloader = shutil.which('aria2c') or shutil.which('wget')
     if not downloader:
@@ -287,6 +288,8 @@ def download_gse(gseid, output=None, max_workers=4):
 
 
 def get_gse_info(gseid, info_dict):
+    import requests
+    from bs4 import BeautifulSoup
     url = f'https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc={gseid}'
     soup = BeautifulSoup(requests.get(url).text, 'html.parser')
     temp_info_dict = {}
@@ -305,6 +308,7 @@ def get_gse_info(gseid, info_dict):
     info_dict[gseid] = temp_info_dict
 
 def geoparse_sample_info(gseid):
+    import GEOparse
     gse = GEOparse.get_GEO(geo=gseid, destdir="./GEO")
 
     sample_info = {}

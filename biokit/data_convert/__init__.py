@@ -3,8 +3,24 @@
 # Email: tanghongzhen34@gmail.com
 
 
-from ._p2text import p2text
-from ._complementary_color import complementary_color
-from ._bezier_curve_S import bezier_curve_S
-from ._grid_average import grid_average
-from ._text_similarity import text_similarity
+
+_LAZY = {
+    "p2text": "_p2text",
+    "complementary_color": "_complementary_color",
+    "bezier_curve_S": "_bezier_curve_S",
+    "grid_average": "_grid_average",
+    "text_similarity": "_text_similarity",
+}
+
+
+def __getattr__(name):
+    if name in _LAZY:
+        from importlib import import_module
+        mod = import_module(f".{_LAZY[name]}", __name__)
+        value = getattr(mod, name)
+        globals()[name] = value
+        return value
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+__all__ = sorted(_LAZY)

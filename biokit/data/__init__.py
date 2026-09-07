@@ -4,8 +4,6 @@
 # %% 
 import os
 import pandas as pd
-from ._geo import download_gse, get_gse_sampleinfo
-from ._rank_df import get_rank_df
 
 data_path = os.path.dirname(os.path.abspath(__file__))
 
@@ -73,5 +71,26 @@ def load_ensembl_annotation():
     return geneid_df, genename_df, genetype_df
 
 
-from ._singlecell_marker import load_singlecell_marker, load_celltree
-from ._metascape import load_metascape
+
+
+_LAZY = {
+    "download_gse": "_geo",
+    "get_gse_sampleinfo": "_geo",
+    "get_rank_df": "_rank_df",
+    "load_singlecell_marker": "_singlecell_marker",
+    "load_celltree": "_singlecell_marker",
+    "load_metascape": "_metascape",
+}
+
+
+def __getattr__(name):
+    if name in _LAZY:
+        from importlib import import_module
+        mod = import_module(f".{_LAZY[name]}", __name__)
+        value = getattr(mod, name)
+        globals()[name] = value
+        return value
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+__all__ = sorted(_LAZY)

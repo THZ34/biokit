@@ -117,6 +117,7 @@ def cox(df, time='time', status='status', variables=None, mod='single', drop_by_
                 cox_input.drop(vif_drop, axis=1, inplace=True)
 
                 vif_drop_discrete = sorted(list(set([i[0] for i in vif_drop]) & set(discrete_index)))
+                print(vif_drop_discrete)
                 # 删除值完全相同的重复变量
                 for col in copy.copy(dup_cols):
                     if dup_col_pair[col][0] in vif_drop_discrete:
